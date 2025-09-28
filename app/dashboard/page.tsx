@@ -2,102 +2,225 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Package, TriangleAlert as AlertTriangle, TrendingUp, Users, DollarSign, Clock, QrCode, Plus } from 'lucide-react';
+import { Package, TrendingUp, Users, Clock, QrCode, Plus, Hammer, Wrench } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
+
+interface DashboardStats {
+  totalParts: number;
+  lowStockItems: number;
+  totalUsers: number;
+  recentTransactions: number;
+  totalBoards: number;
+  readyBoards: number;
+  totalBuilds: number;
+}
+
+interface RecentActivity {
+  id: string;
+  type: 'checkout' | 'return' | 'adjustment' | 'build';
+  user: string;
+  part?: string;
+  board?: string;
+  quantity: number;
+  timestamp: string;
+}
 
 export default function DashboardPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const [stats, setStats] = useState<DashboardStats>({
+    totalParts: 0,
+    lowStockItems: 0,
+    totalUsers: 0,
+    recentTransactions: 0,
+    totalBoards: 0,
+    readyBoards: 0,
+    totalBuilds: 0
+  });
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Real inventory data for dashboard calculations
-  const inventoryData = {
-    totalParts: 1247,
-    totalValue: 89450.75,
-    lowStockItems: 23,
-    outOfStockItems: 5,
-    recentTransactions: 156,
-    activeUsers: 12,
-    sensitivePartsCount: 8,
-    averagePartValue: 71.75,
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch inventory stats
+      const { data: inventory, error: invError } = await supabase
+        .from('inventory')
+        .select('quantity, min_quantity');
+
+      if (invError) throw invError;
+
+      // Fetch user count (admin only)
+      let userCount = 0;
+      if (isAdmin) {
+        const { count, error: userError } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true });
+
+        if (!userError) userCount = count || 0;
+      }
+
+      // Fetch board stats
+      const { data: boards, error: boardError } = await supabase
+        .from('boards')
+        .select(`
+          *,
+          board_parts (
+            quantity_required,
+            inventory (quantity)
+          )
+        `)
+        .eq('is_active', true);
+
+      if (boardError) throw boardError;
+
+      // Count ready boards (those with sufficient parts)
+      const readyBoards = (boards || []).filter(board =>
+        board.board_parts.every((bp: any) =>
+          bp.inventory.quantity >= bp.quantity_required
+        )
+      ).length;
+
+      // Fetch total builds
+      const { count: buildsCount, error: buildsError } = await supabase
+        .from('board_builds')
+        .select('*', { count: 'exact', head: true });
+
+      if (buildsError) throw buildsError;
+
+      // Fetch recent transactions
+      const { data: transactions, error: transError } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          inventory (part_id),
+          users (name)
+        `)
+        .order('timestamp', { ascending: false })
+        .limit(5);
+
+      // Fetch recent builds
+      const { data: builds, error: buildError } = await supabase
+        .from('board_builds')
+        .select(`
+          *,
+          boards (name),
+          users (name)
+        `)
+        .order('built_at', { ascending: false })
+        .limit(3);
+
+      // Combine and format recent activity
+      const formattedTransactions: RecentActivity[] = (transactions || []).map(t => ({
+        id: t.id,
+        type: t.type,
+        user: t.users?.name || 'Unknown',
+        part: t.inventory?.part_id,
+        quantity: t.quantity,
+        timestamp: formatTimeAgo(t.timestamp)
+      }));
+
+      const formattedBuilds: RecentActivity[] = (builds || []).map(b => ({
+        id: b.id,
+        type: 'build' as const,
+        user: b.users?.name || 'Unknown',
+        board: b.boards?.name,
+        quantity: b.quantity_built,
+        timestamp: formatTimeAgo(b.built_at)
+      }));
+
+      const allActivity = [...formattedTransactions, ...formattedBuilds]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 4);
+
+      // Calculate stats
+      const totalParts = inventory?.length || 0;
+      const lowStockItems = inventory?.filter(item => item.quantity <= item.min_quantity).length || 0;
+
+      setStats({
+        totalParts,
+        lowStockItems,
+        totalUsers: userCount,
+        recentTransactions: (transactions?.length || 0) + (builds?.length || 0),
+        totalBoards: boards?.length || 0,
+        readyBoards,
+        totalBuilds: buildsCount || 0
+      });
+
+      setRecentActivity(allActivity);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentActivity = [
-    {
-      id: '1',
-      type: 'checkout',
-      user: 'John Smith',
-      part: 'RES-10K-001',
-      quantity: 25,
-      timestamp: '2 minutes ago',
-    },
-    {
-      id: '2',
-      type: 'return',
-      user: 'Sarah Johnson',
-      part: 'CAP-100UF-001',
-      quantity: 5,
-      timestamp: '15 minutes ago',
-    },
-    {
-      id: '3',
-      type: 'adjustment',
-      user: 'Admin',
-      part: 'IC-MCU-001',
-      quantity: -2,
-      timestamp: '1 hour ago',
-    },
-    {
-      id: '4',
-      type: 'checkout',
-      user: 'Mike Wilson',
-      part: 'CONN-USB-001',
-      quantity: 10,
-      timestamp: '2 hours ago',
-    },
-  ];
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  const lowStockAlerts = [
-    { part_id: 'CAP-100UF-001', description: '100µF Electrolytic Capacitor', current: 8, minimum: 15 },
-    { part_id: 'CRYPTO-CHIP-001', description: 'Hardware Security Module', current: 3, minimum: 5 },
-    { part_id: 'LED-RED-001', description: 'Red LED 5mm', current: 12, minimum: 50 },
-    { part_id: 'WIRE-22AWG-001', description: '22AWG Hookup Wire (Red)', current: 0, minimum: 10 },
-  ];
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
 
-  const stats = [
+  const dashboardStats = [
     {
-      title: 'Total Inventory Value',
-      value: `$${inventoryData.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      description: `${inventoryData.totalParts} total parts`,
-      icon: DollarSign,
-      trend: '+5.2%',
+      title: 'Total Parts',
+      value: stats.totalParts.toString(),
+      description: `${stats.lowStockItems} need restocking`,
+      icon: Package,
+      trend: '+2 this week',
       trendUp: true,
     },
     {
-      title: 'Stock Alerts',
-      value: inventoryData.lowStockItems.toString(),
-      description: `${inventoryData.outOfStockItems} out of stock`,
-      icon: AlertTriangle,
-      trend: '-3 from last week',
-      trendUp: false,
+      title: 'Board Designs',
+      value: stats.totalBoards.toString(),
+      description: `${stats.readyBoards} ready to build`,
+      icon: Wrench,
+      trend: `${stats.totalBuilds} built total`,
+      trendUp: true,
     },
     {
-      title: 'Weekly Transactions',
-      value: inventoryData.recentTransactions.toString(),
-      description: 'Parts checked out/returned',
+      title: 'Recent Activity',
+      value: stats.recentTransactions.toString(),
+      description: 'Transactions this week',
       icon: TrendingUp,
       trend: '+18%',
       trendUp: true,
     },
     {
       title: 'Active Users',
-      value: inventoryData.activeUsers.toString(),
-      description: 'System users this month',
+      value: isAdmin ? stats.totalUsers.toString() : '—',
+      description: isAdmin ? 'Registered accounts' : 'Admin only',
       icon: Users,
       trend: '+2 new',
       trendUp: true,
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="minimal-layout">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="minimal-layout">
@@ -125,7 +248,7 @@ export default function DashboardPage() {
 
       {/* Key Metrics */}
       <div className="dashboard-stats">
-        {stats.map((stat) => {
+        {dashboardStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div key={stat.title} className="stat-card">
@@ -146,47 +269,13 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        {/* Stock Alerts */}
-        <div className="dashboard-card">
-          <div className="dashboard-card-header">
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-            <div className="dashboard-card-title">Stock Alerts</div>
-          </div>
-          <div className="dashboard-card-description mb-3">Parts that need attention</div>
-          <div className="space-y-2">
-            {lowStockAlerts.map((alert, index) => (
-              <div key={index} className="space-y-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-xs">{alert.part_id}</p>
-                    <p className="text-xs text-gray-500">{alert.description}</p>
-                  </div>
-                  <span className={`clean-badge ${alert.current === 0 ? "clean-badge-admin" : "clean-badge-lowstock"}`}>
-                    {alert.current === 0 ? "Out of Stock" : "Low Stock"}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span>Current: {alert.current}</span>
-                    <span>Minimum: {alert.minimum}</span>
-                  </div>
-                  <Progress
-                    value={Math.min((alert.current / alert.minimum) * 100, 100)}
-                    className="h-1"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Recent Activity */}
         <div className="dashboard-card">
           <div className="dashboard-card-header">
             <Clock className="h-4 w-4 text-gray-500" />
             <div className="dashboard-card-title">Recent Activity</div>
           </div>
-          <div className="dashboard-card-description mb-3">Latest inventory transactions</div>
+          <div className="dashboard-card-description mb-3">Latest inventory and manufacturing activity</div>
           <div className="space-y-2">
             {recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-center justify-between">
@@ -194,14 +283,17 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2">
                     <span className={`clean-badge ${
                       activity.type === 'checkout' ? 'clean-badge-active' :
-                      activity.type === 'return' ? 'clean-badge-member' : 'clean-badge-restricted'
+                      activity.type === 'return' ? 'clean-badge-member' :
+                      activity.type === 'build' ? 'clean-badge-admin' : 'clean-badge-restricted'
                     }`}>
                       {activity.type}
                     </span>
-                    <span className="font-medium text-xs">{activity.part}</span>
+                    <span className="font-medium text-xs">
+                      {activity.part || activity.board}
+                    </span>
                   </div>
                   <p className="text-xs text-gray-500">
-                    {activity.user} • {activity.quantity > 0 ? '+' : ''}{activity.quantity} units
+                    {activity.user} • {activity.quantity > 0 ? '+' : ''}{activity.quantity} {activity.type === 'build' ? 'built' : 'units'}
                   </p>
                 </div>
                 <span className="text-xs text-gray-500">
@@ -209,93 +301,73 @@ export default function DashboardPage() {
                 </span>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="dashboard-card">
-        <div className="dashboard-card-header">
-          <div className="dashboard-card-title">Quick Actions</div>
-        </div>
-        <div className="dashboard-card-description mb-3">Common tasks based on your role</div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Available to Everyone</h4>
-            <div className="grid gap-2">
-              <Button variant="outline" className="justify-start h-auto p-2">
-                <QrCode className="h-4 w-4 mr-2" />
-                <div className="text-left">
-                  <div className="font-medium text-xs">Scan QR Code</div>
-                  <div className="text-xs text-gray-500">Check out or return parts</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto p-2">
-                <Package className="h-4 w-4 mr-2" />
-                <div className="text-left">
-                  <div className="font-medium text-xs">Browse Inventory</div>
-                  <div className="text-xs text-gray-500">Search and view parts catalog</div>
-                </div>
-              </Button>
-            </div>
-          </div>
-
-          {isAdmin && (
-            <div className="space-y-2">
-              <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Admin Functions</h4>
-              <div className="grid gap-2">
-                <Button variant="outline" className="justify-start h-auto p-2">
-                  <Plus className="h-4 w-4 mr-2" />
-                  <div className="text-left">
-                    <div className="font-medium text-xs">Add New Parts</div>
-                    <div className="text-xs text-gray-500">Create inventory entries</div>
-                  </div>
-                </Button>
-                <Button variant="outline" className="justify-start h-auto p-2">
-                  <Users className="h-4 w-4 mr-2" />
-                  <div className="text-left">
-                    <div className="font-medium text-xs">Manage Users</div>
-                    <div className="text-xs text-gray-500">User accounts and permissions</div>
-                  </div>
-                </Button>
+            {recentActivity.length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-xs">
+                No recent activity
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* System Status */}
-      {isAdmin && (
+        {/* Quick Actions */}
         <div className="dashboard-card">
           <div className="dashboard-card-header">
-            <div className="dashboard-card-title">System Overview</div>
+            <div className="dashboard-card-title">Quick Actions</div>
           </div>
-          <div className="dashboard-card-description mb-3">Administrative insights and system health</div>
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Database Health</span>
-                <span className="text-green-600">Excellent</span>
+          <div className="dashboard-card-description mb-3">Common tasks based on your role</div>
+          <div className="grid gap-3 md:grid-cols-1">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Available to Everyone</h4>
+              <div className="grid gap-2">
+                <Button variant="outline" className="justify-start h-auto p-2">
+                  <QrCode className="h-4 w-4 mr-2" />
+                  <div className="text-left">
+                    <div className="font-medium text-xs">Scan QR Code</div>
+                    <div className="text-xs text-gray-500">Check out or return parts</div>
+                  </div>
+                </Button>
+                <Button variant="outline" className="justify-start h-auto p-2">
+                  <Package className="h-4 w-4 mr-2" />
+                  <div className="text-left">
+                    <div className="font-medium text-xs">Browse Inventory</div>
+                    <div className="text-xs text-gray-500">Search and view parts catalog</div>
+                  </div>
+                </Button>
+                <Button variant="outline" className="justify-start h-auto p-2">
+                  <Hammer className="h-4 w-4 mr-2" />
+                  <div className="text-left">
+                    <div className="font-medium text-xs">Build Boards</div>
+                    <div className="text-xs text-gray-500">Manufacture PCB assemblies</div>
+                  </div>
+                </Button>
               </div>
-              <Progress value={95} className="h-1" />
             </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Storage Usage</span>
-                <span>2.3GB / 10GB</span>
+
+            {isAdmin && (
+              <div className="space-y-2 mt-3">
+                <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Admin Functions</h4>
+                <div className="grid gap-2">
+                  <Button variant="outline" className="justify-start h-auto p-2">
+                    <Plus className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium text-xs">Add New Parts</div>
+                      <div className="text-xs text-gray-500">Create inventory entries</div>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="justify-start h-auto p-2">
+                    <Users className="h-4 w-4 mr-2" />
+                    <div className="text-left">
+                      <div className="font-medium text-xs">Manage Users</div>
+                      <div className="text-xs text-gray-500">User accounts and permissions</div>
+                    </div>
+                  </Button>
+                </div>
               </div>
-              <Progress value={23} className="h-1" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Active Sessions</span>
-                <span>{inventoryData.activeUsers} users</span>
-              </div>
-              <Progress value={60} className="h-1" />
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

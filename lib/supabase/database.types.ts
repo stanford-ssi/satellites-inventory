@@ -103,6 +103,106 @@ export interface Database {
           timestamp?: string;
         };
       };
+      boards: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          version: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+          is_active: boolean;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          version?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          version?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          is_active?: boolean;
+        };
+      };
+      board_parts: {
+        Row: {
+          id: string;
+          board_id: string;
+          part_id: string;
+          quantity_required: number;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          board_id: string;
+          part_id: string;
+          quantity_required: number;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          board_id?: string;
+          part_id?: string;
+          quantity_required?: number;
+          notes?: string | null;
+          created_at?: string;
+        };
+      };
+      board_builds: {
+        Row: {
+          id: string;
+          board_id: string;
+          built_by: string | null;
+          quantity_built: number;
+          notes: string | null;
+          built_at: string;
+        };
+        Insert: {
+          id?: string;
+          board_id: string;
+          built_by?: string | null;
+          quantity_built?: number;
+          notes?: string | null;
+          built_at?: string;
+        };
+        Update: {
+          id?: string;
+          board_id?: string;
+          built_by?: string | null;
+          quantity_built?: number;
+          notes?: string | null;
+          built_at?: string;
+        };
+      };
+    };
+    Functions: {
+      build_board: {
+        Args: {
+          board_id_param: string;
+          quantity_param?: number;
+          notes_param?: string | null;
+        };
+        Returns: {
+          success: boolean;
+          build_id?: string;
+          message?: string;
+          error?: string;
+          insufficient_parts?: string[];
+        };
+      };
     };
   };
 }

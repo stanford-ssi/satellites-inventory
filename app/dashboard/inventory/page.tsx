@@ -73,7 +73,7 @@ export default function InventoryPage() {
               <Search className="search-icon w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search parts or descriptions..."
+                placeholder=""
                 className="search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
