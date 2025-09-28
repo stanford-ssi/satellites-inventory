@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -101,229 +100,201 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="dashboard-section">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Welcome back, {profile?.name}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Here's what's happening with your inventory today.
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="compact-button">
-            <QrCode className="h-4 w-4 mr-2" />
-            Scan QR Code
-          </Button>
-          {isAdmin && (
-            <Button size="sm" className="compact-button">
-              <Plus className="h-4 w-4 mr-2" />
-              Quick Add Part
-            </Button>
-          )}
+    <div className="minimal-layout">
+      <div className="minimal-header">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1>Welcome back, {profile?.name}</h1>
+            <p>Here's what's happening with your inventory today.</p>
+          </div>
+
+          <div className="flex gap-2">
+            <button className="github-button github-button-sm">
+              <QrCode className="h-3 w-3 mr-1" />
+              Scan QR
+            </button>
+            {isAdmin && (
+              <button className="github-button github-button-primary github-button-sm">
+                <Plus className="h-3 w-3 mr-1" />
+                Add Part
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid dashboard-grid md:grid-cols-2 lg:grid-cols-4">
+      <div className="dashboard-stats">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="compact-card">
-              <CardHeader className="compact-card-header flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="compact-card-content">
-                <div className="text-xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mb-1">
-                  {stat.description}
-                </p>
-                <Badge
-                  variant={stat.trendUp ? "default" : "secondary"}
-                  className="text-xs"
-                >
+            <div key={stat.title} className="stat-card">
+              <div className="stat-card-header">
+                <div className="stat-card-title">{stat.title}</div>
+                <Icon className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="stat-card-value">{stat.value}</div>
+              <div className="stat-card-description">{stat.description}</div>
+              <div className="stat-card-trend">
+                <span className={`clean-badge ${stat.trendUp ? 'clean-badge-active' : 'clean-badge-member'}`}>
                   {stat.trend}
-                </Badge>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         {/* Stock Alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Stock Alerts
-            </CardTitle>
-            <CardDescription>
-              Parts that need attention
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="dashboard-card">
+          <div className="dashboard-card-header">
+            <AlertTriangle className="h-4 w-4 text-orange-500" />
+            <div className="dashboard-card-title">Stock Alerts</div>
+          </div>
+          <div className="dashboard-card-description mb-3">Parts that need attention</div>
+          <div className="space-y-2">
             {lowStockAlerts.map((alert, index) => (
-              <div key={index} className="space-y-2">
+              <div key={index} className="space-y-1">
                 <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{alert.part_id}</p>
-                    <p className="text-xs text-muted-foreground">{alert.description}</p>
+                  <div>
+                    <p className="font-medium text-xs">{alert.part_id}</p>
+                    <p className="text-xs text-gray-500">{alert.description}</p>
                   </div>
-                  <Badge variant={alert.current === 0 ? "destructive" : "outline"}>
+                  <span className={`clean-badge ${alert.current === 0 ? "clean-badge-admin" : "clean-badge-lowstock"}`}>
                     {alert.current === 0 ? "Out of Stock" : "Low Stock"}
-                  </Badge>
+                  </span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span>Current: {alert.current}</span>
                     <span>Minimum: {alert.minimum}</span>
                   </div>
-                  <Progress 
-                    value={Math.min((alert.current / alert.minimum) * 100, 100)} 
-                    className="h-2"
+                  <Progress
+                    value={Math.min((alert.current / alert.minimum) * 100, 100)}
+                    className="h-1"
                   />
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>
-              Latest inventory transactions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="dashboard-card">
+          <div className="dashboard-card-header">
+            <Clock className="h-4 w-4 text-gray-500" />
+            <div className="dashboard-card-title">Recent Activity</div>
+          </div>
+          <div className="dashboard-card-description mb-3">Latest inventory transactions</div>
+          <div className="space-y-2">
             {recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-center justify-between">
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={
-                        activity.type === 'checkout' ? 'default' : 
-                        activity.type === 'return' ? 'secondary' : 'outline'
-                      }
-                      className="text-xs"
-                    >
+                    <span className={`clean-badge ${
+                      activity.type === 'checkout' ? 'clean-badge-active' :
+                      activity.type === 'return' ? 'clean-badge-member' : 'clean-badge-restricted'
+                    }`}>
                       {activity.type}
-                    </Badge>
-                    <span className="font-medium text-sm">{activity.part}</span>
+                    </span>
+                    <span className="font-medium text-xs">{activity.part}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-gray-500">
                     {activity.user} • {activity.quantity > 0 ? '+' : ''}{activity.quantity} units
                   </p>
                 </div>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-gray-500">
                   {activity.timestamp}
                 </span>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Common tasks based on your role
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-3">
-              <h4 className="font-semibold text-sm">Available to Everyone</h4>
+      <div className="dashboard-card">
+        <div className="dashboard-card-header">
+          <div className="dashboard-card-title">Quick Actions</div>
+        </div>
+        <div className="dashboard-card-description mb-3">Common tasks based on your role</div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Available to Everyone</h4>
+            <div className="grid gap-2">
+              <Button variant="outline" className="justify-start h-auto p-2">
+                <QrCode className="h-4 w-4 mr-2" />
+                <div className="text-left">
+                  <div className="font-medium text-xs">Scan QR Code</div>
+                  <div className="text-xs text-gray-500">Check out or return parts</div>
+                </div>
+              </Button>
+              <Button variant="outline" className="justify-start h-auto p-2">
+                <Package className="h-4 w-4 mr-2" />
+                <div className="text-left">
+                  <div className="font-medium text-xs">Browse Inventory</div>
+                  <div className="text-xs text-gray-500">Search and view parts catalog</div>
+                </div>
+              </Button>
+            </div>
+          </div>
+
+          {isAdmin && (
+            <div className="space-y-2">
+              <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Admin Functions</h4>
               <div className="grid gap-2">
-                <Button variant="outline" className="justify-start h-auto p-3">
-                  <QrCode className="h-4 w-4 mr-3" />
+                <Button variant="outline" className="justify-start h-auto p-2">
+                  <Plus className="h-4 w-4 mr-2" />
                   <div className="text-left">
-                    <div className="font-medium">Scan QR Code</div>
-                    <div className="text-xs text-muted-foreground">Check out or return parts</div>
+                    <div className="font-medium text-xs">Add New Parts</div>
+                    <div className="text-xs text-gray-500">Create inventory entries</div>
                   </div>
                 </Button>
-                <Button variant="outline" className="justify-start h-auto p-3">
-                  <Package className="h-4 w-4 mr-3" />
+                <Button variant="outline" className="justify-start h-auto p-2">
+                  <Users className="h-4 w-4 mr-2" />
                   <div className="text-left">
-                    <div className="font-medium">Browse Inventory</div>
-                    <div className="text-xs text-muted-foreground">Search and view parts catalog</div>
+                    <div className="font-medium text-xs">Manage Users</div>
+                    <div className="text-xs text-gray-500">User accounts and permissions</div>
                   </div>
                 </Button>
               </div>
             </div>
-            
-            {isAdmin && (
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm">Admin Functions</h4>
-                <div className="grid gap-2">
-                  <Button variant="outline" className="justify-start h-auto p-3">
-                    <Plus className="h-4 w-4 mr-3" />
-                    <div className="text-left">
-                      <div className="font-medium">Add New Parts</div>
-                      <div className="text-xs text-muted-foreground">Create inventory entries</div>
-                    </div>
-                  </Button>
-                  <Button variant="outline" className="justify-start h-auto p-3">
-                    <Users className="h-4 w-4 mr-3" />
-                    <div className="text-left">
-                      <div className="font-medium">Manage Users</div>
-                      <div className="text-xs text-muted-foreground">User accounts and permissions</div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </div>
 
       {/* System Status */}
       {isAdmin && (
-        <Card>
-          <CardHeader>
-            <CardTitle>System Overview</CardTitle>
-            <CardDescription>
-              Administrative insights and system health
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Database Health</span>
-                  <span className="text-green-600">Excellent</span>
-                </div>
-                <Progress value={95} className="h-2" />
+        <div className="dashboard-card">
+          <div className="dashboard-card-header">
+            <div className="dashboard-card-title">System Overview</div>
+          </div>
+          <div className="dashboard-card-description mb-3">Administrative insights and system health</div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span>Database Health</span>
+                <span className="text-green-600">Excellent</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Storage Usage</span>
-                  <span>2.3GB / 10GB</span>
-                </div>
-                <Progress value={23} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Active Sessions</span>
-                  <span>{inventoryData.activeUsers} users</span>
-                </div>
-                <Progress value={60} className="h-2" />
-              </div>
+              <Progress value={95} className="h-1" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span>Storage Usage</span>
+                <span>2.3GB / 10GB</span>
+              </div>
+              <Progress value={23} className="h-1" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span>Active Sessions</span>
+                <span>{inventoryData.activeUsers} users</span>
+              </div>
+              <Progress value={60} className="h-1" />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

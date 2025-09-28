@@ -71,61 +71,232 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
   }
 }
 
-/* Custom utility classes for compact design */
-.inventory-table {
-  @apply text-sm;
+/* GitHub Projects-style clean design */
+
+/* Clean table styling */
+.github-table {
+  @apply w-full border-collapse;
+  border-spacing: 0;
 }
 
-.inventory-table th {
-  @apply bg-muted/50 font-medium px-2 py-1;
+.github-table th {
+  @apply bg-gray-50 text-left font-medium text-gray-700 uppercase tracking-wider;
+  padding: 6px 8px;
+  border-bottom: 1px solid #d1d5db;
+  font-size: 11px;
 }
 
-.inventory-table td {
-  @apply border-b px-2 py-1;
+.github-table td {
+  @apply text-gray-900;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  font-size: 12px;
 }
 
-/* Compact padding overrides */
-.compact-card {
-  @apply p-3;
+.github-table tbody tr:hover {
+  @apply bg-gray-50;
 }
 
-.compact-card-header {
-  @apply pb-2;
+/* Minimal card styling */
+.clean-card {
+  @apply bg-white border border-gray-200 rounded-lg;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.compact-card-content {
-  @apply pt-0;
+.clean-card-header {
+  @apply px-4 py-3 border-b border-gray-200;
 }
 
-.compact-button {
-  @apply px-2 py-1 h-7 text-xs;
+.clean-card-content {
+  @apply p-0;
 }
 
-.compact-table {
-  @apply text-xs;
+/* Clean buttons */
+.github-button {
+  @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md border;
+  @apply border-gray-300 bg-white text-gray-700 hover:bg-gray-50;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  transition: all 0.1s ease-in-out;
 }
 
-.compact-table th {
-  @apply px-2 py-1;
+.github-button-primary {
+  @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700;
 }
 
-.compact-table td {
-  @apply px-2 py-1;
+.github-button-sm {
+  @apply px-2 py-1 text-xs;
 }
 
-/* Dashboard spacing */
+/* Clean input styling */
+.github-input {
+  @apply block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md;
+  @apply placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Minimal spacing */
 .dashboard-section {
-  @apply space-y-3;
+  @apply space-y-4;
 }
 
 .dashboard-grid {
-  @apply gap-3;
+  @apply gap-4;
 }
 
-/* Ensure proper contrast for all text */
-.text-muted-foreground {
-  color: hsl(var(--muted-foreground));
+/* Clean badges */
+.clean-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+}
+
+.clean-badge-admin {
+  @apply bg-red-100 text-red-800;
+}
+
+.clean-badge-member {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.clean-badge-active {
+  @apply bg-green-100 text-green-800;
+}
+
+.clean-badge-restricted {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.clean-badge-lowstock {
+  @apply bg-orange-100 text-orange-800;
+}
+
+/* Minimal layout spacing */
+.minimal-layout {
+  @apply p-3;
+}
+
+.minimal-header {
+  @apply mb-2;
+}
+
+.minimal-header h1 {
+  @apply text-lg font-semibold text-gray-900 mb-0.5;
+  font-size: 15px;
+}
+
+.minimal-header p {
+  @apply text-gray-600;
+  font-size: 11px;
+}
+
+/* Compact dashboard cards */
+.dashboard-stats {
+  @apply grid gap-3 md:grid-cols-2 lg:grid-cols-4 mb-3;
+}
+
+.stat-card {
+  @apply bg-white border border-gray-200 rounded-md;
+  padding: 10px;
+}
+
+.stat-card-header {
+  @apply flex items-center justify-between mb-1;
+}
+
+.stat-card-title {
+  @apply text-gray-700 font-medium;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+  @apply text-gray-900 font-semibold;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.stat-card-description {
+  @apply text-gray-500 mt-0.5;
+  font-size: 10px;
+}
+
+.stat-card-trend {
+  @apply mt-1;
+  font-size: 10px;
+}
+
+/* Dashboard section cards */
+.dashboard-card {
+  @apply bg-white border border-gray-200 rounded-md mb-3;
+  padding: 12px;
+}
+
+.dashboard-card-header {
+  @apply flex items-center gap-2 mb-2;
+}
+
+.dashboard-card-title {
+  @apply text-gray-900 font-medium;
+  font-size: 13px;
+}
+
+.dashboard-card-description {
+  @apply text-gray-500;
+  font-size: 11px;
+}
+
+/* Remove all unnecessary borders and shadows */
+.borderless {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Clean search box */
+.search-container {
+  @apply relative;
+}
+
+.search-input {
+  @apply github-input pl-8;
+  width: 320px;
+}
+
+.search-icon {
+  @apply absolute left-2.5 top-2 text-gray-400;
+}
+
+/* Override shadcn bloat */
+.card {
+  @apply clean-card;
+}
+
+.card-header {
+  @apply clean-card-header;
+}
+
+.card-content {
+  @apply clean-card-content;
+}
+
+/* Clean status indicators */
+.status-dot {
+  @apply inline-block w-2 h-2 rounded-full mr-2;
+}
+
+.status-dot-green {
+  @apply bg-green-400;
+}
+
+.status-dot-red {
+  @apply bg-red-400;
+}
+
+.status-dot-yellow {
+  @apply bg-yellow-400;
 }

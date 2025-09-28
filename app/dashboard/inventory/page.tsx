@@ -50,167 +50,152 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="dashboard-section">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Inventory Management</h1>
-          <p className="text-muted-foreground text-sm">
-            {visibleInventory.length} parts
-            {isAdmin && (
-              <span> • ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} total value</span>
-            )}
-            {lowStockCount > 0 && (
-              <span className="ml-2 text-red-600">
-                • {lowStockCount} items low stock
-              </span>
-            )}
-          </p>
-        </div>
+    <div className="minimal-layout">
+      <div className="minimal-header">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1>Inventory Management</h1>
+            <p>
+              {visibleInventory.length} parts
+              {isAdmin && (
+                <span> • ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} total value</span>
+              )}
+              {lowStockCount > 0 && (
+                <span className="ml-2 text-orange-600">
+                  • {lowStockCount} items low stock
+                </span>
+              )}
+            </p>
+          </div>
 
-        {isAdmin && (
-          <Button size="sm" className="compact-button">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Part
-          </Button>
-        )}
-      </div>
-
-      <Card className="compact-card">
-        <CardHeader className="compact-card-header">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Parts Inventory</CardTitle>
-              <CardDescription className="text-sm">
-                Complete parts catalog with location tracking and stock levels
-              </CardDescription>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
+          <div className="flex items-center gap-3">
+            <div className="search-container">
+              <Search className="search-icon w-4 h-4" />
+              <input
+                type="text"
                 placeholder="Search parts or descriptions..."
-                className="w-64 h-8 text-sm"
+                className="search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            {isAdmin && (
+              <button className="github-button github-button-primary github-button-sm">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Part
+              </button>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="compact-card-content">
-          <div className="rounded-md border">
-            <Table className="compact-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">Part ID</TableHead>
-                  <TableHead className="min-w-[250px]">Description</TableHead>
-                  <TableHead className="w-[80px]">Location</TableHead>
-                  <TableHead className="w-[60px] text-right">Qty</TableHead>
-                  <TableHead className="w-[60px] text-right">Min</TableHead>
-                  {isAdmin && <TableHead className="w-[80px] text-right">Unit Cost</TableHead>}
-                  {isAdmin && <TableHead className="w-[100px] text-right">Total Value</TableHead>}
-                  <TableHead className="w-[80px]">Status</TableHead>
-                  <TableHead className="w-[80px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleInventory.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-muted/50">
-                    <TableCell className="font-mono font-medium text-sm">
-                      {item.part_id}
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">{item.description}</div>
-                        <div className="text-xs text-muted-foreground">
-                          Updated: {new Date(item.updated_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs">
-                        {item.is_sensitive && !isAdmin ? (
-                          <div className="text-muted-foreground italic">Restricted</div>
-                        ) : (
-                          <>
-                            <div className="font-medium">{item.bin_id}</div>
-                            <div className="text-muted-foreground">
-                              {item.location_within_bin}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {item.quantity}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-muted-foreground">
-                      {item.min_quantity}
-                    </TableCell>
-                    {isAdmin && (
-                      <TableCell className="text-right font-mono">
-                        $1.50
-                      </TableCell>
+        </div>
+      </div>
+
+      <div className="clean-card">
+        <table className="github-table">
+          <thead>
+            <tr>
+              <th style={{width: '140px'}}>Part ID</th>
+              <th style={{minWidth: '300px'}}>Description</th>
+              <th style={{width: '120px'}}>Location</th>
+              <th style={{width: '60px'}} className="text-right">Qty</th>
+              <th style={{width: '60px'}} className="text-right">Min</th>
+              {isAdmin && <th style={{width: '80px'}} className="text-right">Unit Cost</th>}
+              {isAdmin && <th style={{width: '100px'}} className="text-right">Total Value</th>}
+              <th style={{width: '100px'}}>Status</th>
+              <th style={{width: '80px'}}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleInventory.map((item) => (
+              <tr key={item.id}>
+                <td className="font-mono font-medium">
+                  {item.part_id}
+                </td>
+                <td>
+                  <div>
+                    <div className="font-medium">{item.description}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      Updated: {new Date(item.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {item.is_sensitive && !isAdmin ? (
+                    <span className="text-gray-500 italic text-sm">Restricted</span>
+                  ) : (
+                    <div>
+                      <div className="font-medium text-sm">{item.bin_id}</div>
+                      <div className="text-xs text-gray-500">{item.location_within_bin}</div>
+                    </div>
+                  )}
+                </td>
+                <td className="text-right font-mono">
+                  {item.quantity}
+                </td>
+                <td className="text-right font-mono text-gray-500">
+                  {item.min_quantity}
+                </td>
+                {isAdmin && (
+                  <td className="text-right font-mono">
+                    $1.50
+                  </td>
+                )}
+                {isAdmin && (
+                  <td className="text-right font-mono font-medium">
+                    ${(item.quantity * 1.5).toFixed(2)}
+                  </td>
+                )}
+                <td>
+                  <div className="flex flex-wrap gap-1">
+                    {item.is_sensitive && (
+                      <span className="clean-badge clean-badge-restricted">
+                        RESTRICTED
+                      </span>
+                    )}
+                    {item.quantity <= item.min_quantity ? (
+                      <span className="clean-badge clean-badge-lowstock">
+                        <span className="status-dot status-dot-yellow"></span>
+                        Low Stock
+                      </span>
+                    ) : (
+                      <span className="clean-badge clean-badge-active">
+                        <span className="status-dot status-dot-green"></span>
+                        In Stock
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <div className="flex items-center gap-1">
+                    <button className="github-button github-button-sm">
+                      <QrCode className="h-3 w-3" />
+                    </button>
+                    {item.part_link && (
+                      <a href={item.part_link} target="_blank" rel="noopener noreferrer" className="github-button github-button-sm">
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
                     )}
                     {isAdmin && (
-                      <TableCell className="text-right font-mono font-medium">
-                        ${(item.quantity * 1.5).toFixed(2)}
-                      </TableCell>
+                      <button className="github-button github-button-sm">
+                        <Edit className="h-3 w-3" />
+                      </button>
                     )}
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {item.is_sensitive && (
-                          <Badge variant="destructive" className="text-xs">
-                            RESTRICTED
-                          </Badge>
-                        )}
-                        {item.quantity <= item.min_quantity && (
-                          <Badge variant="outline" className="text-xs text-red-600 border-red-600">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Low Stock
-                          </Badge>
-                        )}
-                        {item.quantity > item.min_quantity && (
-                          <Badge variant="secondary" className="text-xs">
-                            In Stock
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <QrCode className="h-3 w-3" />
-                        </Button>
-                        {item.part_link && (
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" asChild>
-                            <a href={item.part_link} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </Button>
-                        )}
-                        {isAdmin && (
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {visibleInventory.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900">No parts found</h3>
+            <p className="text-gray-500">
+              {searchTerm ? 'Try adjusting your search terms' : 'No inventory items available'}
+            </p>
           </div>
-          
-          {visibleInventory.length === 0 && (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">No parts found</h3>
-              <p className="text-muted-foreground">
-                {searchTerm ? 'Try adjusting your search terms' : 'No inventory items available'}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }
