@@ -1,0 +1,58 @@
+<==><==><==><==><==><==><==><==><==><==><==><==><==><==><==>
+	Satellites Inventory Management
+<==><==><==><==><==><==><==><==><==><==><==><==><==><==><==>
+
+Build a Next.js + Supabase inventory management MVP with shadcn/ui styling:
+Tech Stack:
+
+Next.js 14+ with TypeScript
+Supabase (database + auth)
+shadcn/ui components with Tailwind CSS
+Clean white background, black text, customizable primary colors
+
+Database Schema:
+sqlinventory: id, part_id, description, bin_id, location_within_bin, quantity, part_link, qr_code
+users: id, email, role (admin/member), name
+transactions: id, part_id, user_id, type (checkout/return), quantity, timestamp
+Authentication:
+
+Supabase Auth (email/password)
+Simple roles: Admin (full access) vs Member (checkout only)
+
+MVP Features (in order):
+
+Core Inventory
+
+Login page
+Inventory table with search/filter
+Add/edit parts (admin only)
+Low stock indicators
+
+
+QR System
+
+Auto-generate QR codes for parts
+QR scanner for checkout/return
+Transaction logging
+
+
+Dashboard
+
+Recent activity
+Low stock alerts
+Quick stats
+
+
+
+UI Requirements:
+
+Use shadcn/ui components throughout, but with far less padding (should be compact)
+Responsive design (mobile-friendly)
+CSS custom properties for easy theming:
+
+css  :root {
+    --primary: /* customizable */
+    --background: white;
+    --foreground: black;
+  }
+Build this as a clean, functional MVP. Start with milestone 1, include Supabase setup instructions and Vercel deployment config.
