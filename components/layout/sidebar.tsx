@@ -55,8 +55,8 @@ export function Sidebar() {
   const isAdmin = profile?.role === 'admin';
 
   return (
-    <aside className="fixed left-0 top-14 z-40 h-[calc(100vh-3.5rem)] w-64 border-r bg-background">
-      <div className="flex h-full flex-col gap-2 p-4">
+    <aside className="fixed left-0 top-12 z-40 h-[calc(100vh-3rem)] w-56 border-r bg-background">
+      <div className="flex h-full flex-col gap-1 p-2">
         <nav className="space-y-1">
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -66,8 +66,9 @@ export function Sidebar() {
               <Link key={item.name} href={item.href}>
                 <Button
                   variant={isActive ? 'default' : 'ghost'}
+                  size="sm"
                   className={cn(
-                    'w-full justify-start gap-2',
+                    'w-full justify-start gap-2 h-8 px-2 text-sm',
                     isActive && 'bg-primary text-primary-foreground'
                   )}
                 >
@@ -83,7 +84,7 @@ export function Sidebar() {
           <>
             <div className="my-2 h-px bg-border" />
             <nav className="space-y-1">
-              <div className="px-3 py-2">
+              <div className="px-2 py-1">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Admin
                 </p>
@@ -91,13 +92,14 @@ export function Sidebar() {
               {adminNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                
+
                 return (
                   <Link key={item.name} href={item.href}>
                     <Button
                       variant={isActive ? 'default' : 'ghost'}
+                      size="sm"
                       className={cn(
-                        'w-full justify-start gap-2',
+                        'w-full justify-start gap-2 h-8 px-2 text-sm',
                         isActive && 'bg-primary text-primary-foreground'
                       )}
                     >

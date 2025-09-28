@@ -10,11 +10,11 @@
   --card-foreground: 0 0% 9%;
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 9%;
-  
-  /* Customizable primary color - change this to match your brand */
-  --primary: 221.2 83.2% 53.3%;
+
+  /* Pure black primary color */
+  --primary: 0 0% 9%;
   --primary-foreground: 0 0% 98%;
-  
+
   /* Clean neutral grays */
   --secondary: 0 0% 96%;
   --secondary-foreground: 0 0% 9%;
@@ -22,15 +22,15 @@
   --muted-foreground: 0 0% 45%;
   --accent: 0 0% 96%;
   --accent-foreground: 0 0% 9%;
-  
-  /* Status colors */
+
+  /* Red for alerts and destructive actions */
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  
+
   /* Borders and inputs */
   --border: 0 0% 90%;
   --input: 0 0% 90%;
-  --ring: 221.2 83.2% 53.3%;
+  --ring: 0 0% 9%;
   
   /* Chart colors */
   --chart-1: 12 76% 61%;
@@ -74,17 +74,55 @@
   }
 }
 
-/* Custom utility classes */
+/* Custom utility classes for compact design */
 .inventory-table {
   @apply text-sm;
 }
 
 .inventory-table th {
-  @apply bg-muted/50 font-medium;
+  @apply bg-muted/50 font-medium px-2 py-1;
 }
 
 .inventory-table td {
-  @apply border-b;
+  @apply border-b px-2 py-1;
+}
+
+/* Compact padding overrides */
+.compact-card {
+  @apply p-3;
+}
+
+.compact-card-header {
+  @apply pb-2;
+}
+
+.compact-card-content {
+  @apply pt-0;
+}
+
+.compact-button {
+  @apply px-2 py-1 h-7 text-xs;
+}
+
+.compact-table {
+  @apply text-xs;
+}
+
+.compact-table th {
+  @apply px-2 py-1;
+}
+
+.compact-table td {
+  @apply px-2 py-1;
+}
+
+/* Dashboard spacing */
+.dashboard-section {
+  @apply space-y-3;
+}
+
+.dashboard-grid {
+  @apply gap-3;
 }
 
 /* Ensure proper contrast for all text */

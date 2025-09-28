@@ -101,24 +101,24 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="dashboard-section">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Welcome back, {profile?.name}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Here's what's happening with your inventory today.
           </p>
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="compact-button">
             <QrCode className="h-4 w-4 mr-2" />
             Scan QR Code
           </Button>
           {isAdmin && (
-            <Button size="sm">
+            <Button size="sm" className="compact-button">
               <Plus className="h-4 w-4 mr-2" />
               Quick Add Part
             </Button>
@@ -127,24 +127,24 @@ export default function DashboardPage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid dashboard-grid md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card key={stat.title} className="compact-card">
+              <CardHeader className="compact-card-header flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
                 </CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mb-2">
+              <CardContent className="compact-card-content">
+                <div className="text-xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground mb-1">
                   {stat.description}
                 </p>
-                <Badge 
-                  variant={stat.trendUp ? "default" : "secondary"} 
+                <Badge
+                  variant={stat.trendUp ? "default" : "secondary"}
                   className="text-xs"
                 >
                   {stat.trend}
