@@ -1,0 +1,31 @@
+QR Code Scanner Requirements:
+
+1. QR Code Format: [website]/qrcode/[part_id]
+   - Uses human-readable part_id (not UUIDs)
+   - Any camera can scan and open the URL
+
+2. QR Code Route Handler: /qrcode/[part_id]
+   - Redirects to scanner page with part info
+   - Automatically loads inventory item by part_id
+
+3. Inventory Actions:
+   - Checkout/Take Out: Remove items from inventory
+   - Return: Add items back to inventory
+   - Adjustment (Admin only): Set exact stock levels
+
+4. Authentication Handling:
+   - Authenticated users: Use their profile
+   - Unauthenticated users: Must enter their name
+
+5. Transaction Form:
+   - Quantity input with validation
+   - Optional notes field
+   - Action selection (checkout/return/adjust)
+   - Error handling and success feedback
+
+6. Database Operations:
+   - Update inventory quantity
+   - Create transaction records with user_id, type, quantity, notes
+   - Use part_id for lookups (not UUIDs)
+
+Note: No need for built-in camera scanner - use external QR apps that open URLs.
