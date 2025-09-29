@@ -11,11 +11,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/auth-context';
-import { LogOut, Package, Settings } from 'lucide-react';
+import { useSidebar } from '@/lib/contexts/sidebar-context';
+import { LogOut, Package, Settings, Menu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
+  const { isMobile, toggle } = useSidebar();
 
   const getInitials = (name: string) => {
     return name
@@ -30,9 +32,26 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-12 items-center px-3 w-full">
         <div className="flex items-center space-x-2">
+          {/* Mobile menu button */}
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggle}
+              className="h-8 w-8 p-0 md:hidden"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          )}
+
           <a href="/dashboard" className="flex items-center space-x-2">
             <img src="/ssi-glitch.png" alt="Logo" className="h-6 w-6" />
-            <span className="font-bold text-sm">Satellites Inventory Manager</span>
+            <span className="font-bold text-sm hidden sm:inline">
+              Satellites Inventory Manager
+            </span>
+            <span className="font-bold text-sm sm:hidden">
+              Inventory
+            </span>
           </a>
         </div>
 

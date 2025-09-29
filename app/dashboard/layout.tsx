@@ -1,4 +1,5 @@
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { SidebarProvider } from '@/lib/contexts/sidebar-context';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 
 export default function DashboardLayoutWrapper({
@@ -8,7 +9,9 @@ export default function DashboardLayoutWrapper({
 }) {
   return (
     <AuthProvider>
-      <DashboardLayout>{children}</DashboardLayout>
+      <SidebarProvider>
+        <DashboardLayout>{children}</DashboardLayout>
+      </SidebarProvider>
     </AuthProvider>
   );
 }
