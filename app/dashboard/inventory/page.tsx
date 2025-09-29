@@ -8,13 +8,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, TriangleAlert as AlertTriangle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useInventory } from '@/lib/hooks/use-inventory';
+import { QrCodeModal } from '@/components/inventory/qr-code-modal';
 import { useState } from 'react';
 
 export default function InventoryPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ partId: string; description: string } | null>(null);
   const { inventory, loading, error } = useInventory();
+
+  const handleShowQrCode = (partId: string, description: string) => {
+    setSelectedItem({ partId, description });
+    setQrModalOpen(true);
+  };
 
   const visibleInventory = inventory.filter(item =>
     (item.part_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -166,7 +174,11 @@ export default function InventoryPage() {
                 </td>
                 <td>
                   <div className="flex items-center gap-1">
-                    <button className="github-button github-button-sm">
+                    <button
+                      className="github-button github-button-sm"
+                      onClick={() => handleShowQrCode(item.part_id, item.description)}
+                      title="Show QR Code"
+                    >
                       <QrCode className="h-3 w-3" />
                     </button>
                     {item.part_link && (
@@ -196,6 +208,16 @@ export default function InventoryPage() {
           </div>
         )}
       </div>
+
+      {/* QR Code Modal */}
+      {selectedItem && (
+        <QrCodeModal
+          isOpen={qrModalOpen}
+          onClose={() => setQrModalOpen(false)}
+          partId={selectedItem.partId}
+          description={selectedItem.description}
+        />
+      )}
     </div>
   );
 }
