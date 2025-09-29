@@ -29,6 +29,17 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const MIN_WIDTH = 64; // Minimum collapsed width
   const MAX_WIDTH = 400; // Maximum expanded width
 
+  // Load sidebar width from localStorage on mount
+  useEffect(() => {
+    const savedWidth = localStorage.getItem('sidebar-width');
+    if (savedWidth) {
+      const width = parseInt(savedWidth, 10);
+      if (width >= MIN_WIDTH && width <= MAX_WIDTH) {
+        setSidebarWidth(width);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -50,6 +61,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     if (!isMobile) {
       const clampedWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, width));
       setSidebarWidth(clampedWidth);
+      localStorage.setItem('sidebar-width', clampedWidth.toString());
     }
   };
 
