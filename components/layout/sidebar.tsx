@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useSidebar } from '@/lib/contexts/sidebar-context';
-import { Package, ChartBar as BarChart3, History, QrCode, Settings, Users, X } from 'lucide-react';
+import { Package, ChartBar as BarChart3, History, Settings, Users, X, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -21,9 +21,9 @@ const navigation = [
     icon: Package,
   },
   {
-    name: 'QR Scanner',
-    href: '/dashboard/scanner',
-    icon: QrCode,
+    name: 'Add/Remove',
+    href: '/dashboard/checkout',
+    icon: ArrowLeftRight,
   },
   {
     name: 'Transactions',

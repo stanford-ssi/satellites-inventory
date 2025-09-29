@@ -10,9 +10,8 @@ export default function QRCodeRedirectPage() {
 
   useEffect(() => {
     if (partId) {
-      // Redirect to inventory page with the part highlighted
-      // You can customize this redirect behavior as needed
-      router.push(`/dashboard/inventory?highlight=${encodeURIComponent(partId)}`);
+      // Redirect to checkout page with the part ID pre-filled
+      router.push(`/dashboard/checkout?part=${encodeURIComponent(partId)}`);
     }
   }, [partId, router]);
 
@@ -22,7 +21,7 @@ export default function QRCodeRedirectPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1>QR Code Access</h1>
-            <p>Taking you to part: {partId}</p>
+            <p>Taking you to checkout: {partId}</p>
           </div>
         </div>
       </div>
@@ -30,7 +29,7 @@ export default function QRCodeRedirectPage() {
       <div className="clean-card">
         <div className="text-center py-12">
           <div className="animate-spin h-16 w-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to inventory...</p>
+          <p className="text-gray-600">Redirecting to checkout...</p>
         </div>
       </div>
     </div>

@@ -10,8 +10,14 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
+  // Allow checkout page without authentication
+  const publicDashboardPaths = ['/dashboard/checkout'];
+  const isPublicPath = publicDashboardPaths.some(path =>
+    req.nextUrl.pathname.startsWith(path)
+  );
+
   // Redirect to login if not authenticated and trying to access protected routes
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!session && req.nextUrl.pathname.startsWith('/dashboard') && !isPublicPath) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
