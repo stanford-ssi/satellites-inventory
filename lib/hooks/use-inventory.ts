@@ -35,6 +35,28 @@ export function useInventory() {
 
   useEffect(() => {
     fetchInventory();
+
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('inventory_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory'
+        },
+        () => {
+          // Refetch data when changes occur
+          fetchInventory();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const addItem = async (item: Database['public']['Tables']['inventory']['Insert']) => {

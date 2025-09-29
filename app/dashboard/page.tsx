@@ -4,175 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Package, TrendingUp, Users, Clock, QrCode, Plus, Hammer, Wrench } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
-
-interface DashboardStats {
-  totalParts: number;
-  lowStockItems: number;
-  totalUsers: number;
-  recentTransactions: number;
-  totalBoards: number;
-  readyBoards: number;
-  totalBuilds: number;
-}
-
-interface RecentActivity {
-  id: string;
-  type: 'checkout' | 'return' | 'adjustment' | 'build';
-  user: string;
-  part?: string;
-  board?: string;
-  quantity: number;
-  timestamp: string;
-}
+import { useDashboard } from '@/lib/hooks/use-dashboard';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
-  const [stats, setStats] = useState<DashboardStats>({
-    totalParts: 0,
-    lowStockItems: 0,
-    totalUsers: 0,
-    recentTransactions: 0,
-    totalBoards: 0,
-    readyBoards: 0,
-    totalBuilds: 0
-  });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch inventory stats
-      const { data: inventory, error: invError } = await supabase
-        .from('inventory')
-        .select('quantity, min_quantity');
-
-      if (invError) throw invError;
-
-      // Fetch user count (admin only)
-      let userCount = 0;
-      if (isAdmin) {
-        const { count, error: userError } = await supabase
-          .from('users')
-          .select('*', { count: 'exact', head: true });
-
-        if (!userError) userCount = count || 0;
-      }
-
-      // Fetch board stats
-      const { data: boards, error: boardError } = await supabase
-        .from('boards')
-        .select(`
-          *,
-          board_parts (
-            quantity_required,
-            inventory (quantity)
-          )
-        `)
-        .eq('is_active', true);
-
-      if (boardError) throw boardError;
-
-      // Count ready boards (those with sufficient parts)
-      const readyBoards = (boards || []).filter(board =>
-        board.board_parts.every((bp: any) =>
-          bp.inventory.quantity >= bp.quantity_required
-        )
-      ).length;
-
-      // Fetch total builds
-      const { count: buildsCount, error: buildsError } = await supabase
-        .from('board_builds')
-        .select('*', { count: 'exact', head: true });
-
-      if (buildsError) throw buildsError;
-
-      // Fetch recent transactions
-      const { data: transactions, error: transError } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          inventory (part_id),
-          users (name)
-        `)
-        .order('timestamp', { ascending: false })
-        .limit(5);
-
-      // Fetch recent builds
-      const { data: builds, error: buildError } = await supabase
-        .from('board_builds')
-        .select(`
-          *,
-          boards (name),
-          users (name)
-        `)
-        .order('built_at', { ascending: false })
-        .limit(3);
-
-      // Combine and format recent activity
-      const formattedTransactions: RecentActivity[] = (transactions || []).map(t => ({
-        id: t.id,
-        type: t.type,
-        user: t.users?.name || 'Unknown',
-        part: t.inventory?.part_id,
-        quantity: t.quantity,
-        timestamp: formatTimeAgo(t.timestamp)
-      }));
-
-      const formattedBuilds: RecentActivity[] = (builds || []).map(b => ({
-        id: b.id,
-        type: 'build' as const,
-        user: b.users?.name || 'Unknown',
-        board: b.boards?.name,
-        quantity: b.quantity_built,
-        timestamp: formatTimeAgo(b.built_at)
-      }));
-
-      const allActivity = [...formattedTransactions, ...formattedBuilds]
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, 4);
-
-      // Calculate stats
-      const totalParts = inventory?.length || 0;
-      const lowStockItems = inventory?.filter(item => item.quantity <= item.min_quantity).length || 0;
-
-      setStats({
-        totalParts,
-        lowStockItems,
-        totalUsers: userCount,
-        recentTransactions: (transactions?.length || 0) + (builds?.length || 0),
-        totalBoards: boards?.length || 0,
-        readyBoards,
-        totalBuilds: buildsCount || 0
-      });
-
-      setRecentActivity(allActivity);
-
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
-  };
+  const { stats, recentActivity, loading, error } = useDashboard();
 
   const dashboardStats = [
     {
@@ -216,6 +53,19 @@ export default function DashboardPage() {
           <div className="text-center">
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="minimal-layout">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Package className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <p className="text-red-500">Error loading dashboard: {error}</p>
           </div>
         </div>
       </div>
