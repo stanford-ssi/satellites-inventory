@@ -77,7 +77,7 @@ export function Sidebar() {
     if (isMobile) {
       setMobileOpen(false);
     }
-  }, [pathname, isMobile, setMobileOpen]);
+  }, [pathname, setMobileOpen]);
 
   // Handle backdrop click on mobile
   const handleBackdropClick = () => {
@@ -148,12 +148,12 @@ export function Sidebar() {
       <aside
         ref={sidebarRef}
         className={cn(
-          'fixed left-0 top-12 z-50 h-[calc(100vh-3rem)] border-r bg-background transition-none',
+          'fixed left-0 top-12 z-50 h-[calc(100vh-3rem)] border-r bg-background',
           // Mobile positioning and width
-          isMobile && 'w-56',
+          isMobile && 'w-56 transition-transform duration-200',
           isMobile && (isOpen ? 'translate-x-0' : '-translate-x-full'),
           // Desktop positioning
-          !isMobile && 'translate-x-0'
+          !isMobile && 'translate-x-0 transition-none'
         )}
         style={{
           width: isMobile ? undefined : `${sidebarWidth}px`
