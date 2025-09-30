@@ -2,13 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { PackagePlus } from 'lucide-react';
+import { PackagePlus, Package } from 'lucide-react';
 
 export default function AddStockPage() {
   const { profile } = useAuth();
@@ -114,74 +113,103 @@ export default function AddStockPage() {
         </div>
       </div>
 
-      <div className="clean-card max-w-2xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Part ID */}
-          <div className="space-y-2">
-            <Label htmlFor="part-id">Part Number</Label>
-            <Input
-              id="part-id"
-              value={partId}
-              onChange={(e) => setPartId(e.target.value)}
-              placeholder="e.g., CAP-100UF-001"
-              required
-              className="font-mono"
-            />
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-3 md:grid-cols-2">
+          {/* Left Column - Part Info & Quantity */}
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <PackagePlus className="h-4 w-4 text-gray-500" />
+              <div className="dashboard-card-title">Stock Addition</div>
+            </div>
+
+            <div className="space-y-2.5 mt-3">
+              {/* Part ID Input */}
+              <div>
+                <label htmlFor="part-id" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Part Number
+                </label>
+                <Input
+                  id="part-id"
+                  value={partId}
+                  onChange={(e) => setPartId(e.target.value)}
+                  placeholder="e.g., CAP-100UF-001"
+                  required
+                  className="github-input font-mono text-xs h-8"
+                />
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label htmlFor="quantity" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Quantity to Add
+                </label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="Enter quantity"
+                  min={1}
+                  className="github-input text-xs h-8"
+                  required
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Quantity */}
-          <div className="space-y-2">
-            <Label htmlFor="quantity">Quantity to Add</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="Enter quantity to add"
-              required
-            />
-          </div>
+          {/* Right Column - User Info & Notes */}
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <Package className="h-4 w-4 text-gray-500" />
+              <div className="dashboard-card-title">User & Notes</div>
+            </div>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any notes about this stock addition (e.g., purchase order, supplier)..."
-              rows={3}
-            />
-          </div>
+            <div className="space-y-2.5 mt-3">
+              {/* User Name */}
+              <div>
+                <label htmlFor="user-name" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Your Name / Email
+                </label>
+                <Input
+                  id="user-name"
+                  value={profile?.email || 'Admin'}
+                  disabled
+                  className="github-input text-xs h-8"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Using logged-in account
+                </p>
+              </div>
 
-          {/* Submit */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="submit"
-              disabled={!isValid || isSubmitting}
-              className="flex-1"
-            >
-              {isSubmitting ? 'Processing...' : 'Add Stock'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-            >
-              Cancel
-            </Button>
+              {/* Notes */}
+              <div>
+                <label htmlFor="notes" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Notes (Optional)
+                </label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add any notes..."
+                  rows={4}
+                  className="text-xs resize-none"
+                />
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
 
-        {!isValid && (
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <p className="text-sm text-muted-foreground">
-              Please fill in all required fields to continue
-            </p>
-          </div>
-        )}
-      </div>
+        {/* Submit Button */}
+        <div className="mt-3">
+          <Button
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            className="w-full md:w-auto h-8 text-xs"
+          >
+            {isSubmitting ? 'Processing...' : 'Add Stock'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
