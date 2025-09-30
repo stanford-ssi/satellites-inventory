@@ -300,3 +300,18 @@
 .status-dot-yellow {
   @apply bg-yellow-400;
 }
+
+/* Compact slider styling */
+[role="slider"] {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* Clean badge variants */
+.clean-badge-checkout {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.clean-badge-checkin {
+  @apply bg-blue-100 text-blue-800;
+}

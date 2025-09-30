@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { Hammer, Package } from 'lucide-react';
 
 export default function CheckoutPage() {
   const { profile } = useAuth();
@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
   const [userCheckedOutQuantity, setUserCheckedOutQuantity] = useState<number>(0);
   const [validationError, setValidationError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (profile?.email) {
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
   }, [partId, userName]);
 
   const fetchPartInfo = async () => {
+    setLoading(true);
     try {
       // Get inventory quantity
       const { data: inventoryItem, error: inventoryError } = await supabase
@@ -90,6 +92,8 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error('Error fetching part info:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -238,151 +242,161 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="clean-card max-w-2xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Part ID */}
-          <div className="space-y-2">
-            <Label htmlFor="part-id">Part Number</Label>
-            <Input
-              id="part-id"
-              value={partId}
-              onChange={(e) => setPartId(e.target.value)}
-              placeholder="e.g., CAP-100UF-001"
-              required
-              className="font-mono"
-            />
-          </div>
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-3 md:grid-cols-2">
+          {/* Left Column - Part Info & Transaction */}
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <Hammer className="h-4 w-4 text-gray-500" />
+              <div className="dashboard-card-title">Transaction</div>
+            </div>
 
-          {/* Show inventory info */}
-          {availableQuantity !== null && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-blue-900 font-medium">Available in inventory:</span>
-                <span className="text-blue-700 font-bold">{availableQuantity}</span>
+            <div className="space-y-2.5 mt-3">
+              {/* Part ID Input */}
+              <div>
+                <label htmlFor="part-id" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Part Number
+                </label>
+                <Input
+                  id="part-id"
+                  value={partId}
+                  onChange={(e) => setPartId(e.target.value)}
+                  placeholder="e.g., CAP-100UF-001"
+                  required
+                  className="github-input font-mono text-xs h-8"
+                />
               </div>
-              {userCheckedOutQuantity > 0 && (
-                <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-blue-900 font-medium">You currently have checked out:</span>
-                  <span className="text-orange-600 font-bold">{userCheckedOutQuantity}</span>
+
+              {loading && (
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="animate-spin h-3 w-3 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <span>Loading part info...</span>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Transaction Type */}
-          <div className="space-y-2">
-            <Label htmlFor="transaction-type">Transaction Type</Label>
-            <Select value={transactionType} onValueChange={(value: any) => setTransactionType(value)}>
-              <SelectTrigger id="transaction-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="take">Check Out</SelectItem>
-                <SelectItem value="consume">Use (permanent)</SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Transaction Type */}
+              <div>
+                <label htmlFor="transaction-type" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Type
+                </label>
+                <Select value={transactionType} onValueChange={(value: any) => setTransactionType(value)}>
+                  <SelectTrigger id="transaction-type" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="take">Check Out</SelectItem>
+                    <SelectItem value="consume">Use (permanent)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label htmlFor="quantity" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Quantity
+                </label>
+                <div className="flex items-center gap-2">
+                  <Slider
+                    value={[availableQuantity !== null ? Math.min(parseInt(quantity) || 1, Math.max(1, availableQuantity)) : 1]}
+                    onValueChange={(value) => setQuantity(value[0].toString())}
+                    min={1}
+                    max={availableQuantity !== null ? Math.max(1, availableQuantity) : 10}
+                    step={1}
+                    className="flex-1 px-3"
+                    disabled={!availableQuantity || availableQuantity === 0}
+                  />
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      const maxQty = Math.max(1, availableQuantity || 1);
+                      if (!isNaN(val) && val >= 1 && val <= maxQty) {
+                        setQuantity(e.target.value);
+                      } else if (e.target.value === '') {
+                        setQuantity('');
+                      }
+                    }}
+                    min={1}
+                    max={Math.max(1, availableQuantity || 1)}
+                    className="w-16 h-8 text-xs text-center font-mono"
+                    required
+                    disabled={!availableQuantity || availableQuantity === 0}
+                  />
+                </div>
+                {availableQuantity === 0 && (
+                  <p className="text-xs text-red-600 mt-1">No items available</p>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Quantity */}
-          <div className="space-y-4">
-            <Label htmlFor="quantity">Quantity</Label>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Slider
-                  value={[Math.min(parseInt(quantity) || 1, Math.max(1, availableQuantity || 1))]}
-                  onValueChange={(value) => setQuantity(value[0].toString())}
-                  min={1}
-                  max={Math.max(1, availableQuantity || 1)}
-                  step={1}
-                  className="flex-1"
-                  disabled={!availableQuantity || availableQuantity === 0}
-                />
+          {/* Right Column - User Info & Notes */}
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <Package className="h-4 w-4 text-gray-500" />
+              <div className="dashboard-card-title">User & Notes</div>
+            </div>
+
+            <div className="space-y-2.5 mt-3">
+              {/* User Name */}
+              <div>
+                <label htmlFor="user-name" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Your Name / Email
+                </label>
                 <Input
-                  id="quantity"
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    const maxQty = Math.max(1, availableQuantity || 1);
-                    if (!isNaN(val) && val >= 1 && val <= maxQty) {
-                      setQuantity(e.target.value);
-                    } else if (e.target.value === '') {
-                      setQuantity('');
-                    }
-                  }}
-                  min={1}
-                  max={Math.max(1, availableQuantity || 1)}
-                  className="w-20"
+                  id="user-name"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name or email"
                   required
-                  disabled={!availableQuantity || availableQuantity === 0}
+                  disabled={!!profile?.email}
+                  className="github-input text-xs h-8"
+                />
+                {profile?.email && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Using logged-in account
+                  </p>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label htmlFor="notes" className="block text-xs font-semibold text-gray-900 mb-1">
+                  Notes (Optional)
+                </label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add any notes..."
+                  rows={4}
+                  className="text-xs resize-none"
                 />
               </div>
-              {availableQuantity === 0 && (
-                <p className="text-sm text-red-600">
-                  No items available in inventory
-                </p>
-              )}
             </div>
           </div>
+        </div>
 
-          {/* User Name */}
-          <div className="space-y-2">
-            <Label htmlFor="user-name">Your Name / Email</Label>
-            <Input
-              id="user-name"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Enter your name or email"
-              required
-              disabled={!!profile?.email}
-            />
-            {profile?.email && (
-              <p className="text-xs text-muted-foreground">
-                Using your logged-in account
-              </p>
-            )}
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any additional notes about this transaction..."
-              rows={3}
-            />
-          </div>
-
-          {/* Submit */}
-          <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={!isValid || isSubmitting}
-              className="w-full"
-            >
-              {isSubmitting ? 'Processing...' : 'Complete Transaction'}
-            </Button>
-          </div>
-        </form>
-
+        {/* Error Message */}
         {validationError && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-700 font-medium">
-              {validationError}
-            </p>
+          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+            {validationError}
           </div>
         )}
 
-        {!isValid && !validationError && (
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <p className="text-sm text-muted-foreground">
-              Please fill in all required fields to continue
-            </p>
-          </div>
-        )}
-      </div>
+        {/* Submit Button */}
+        <div className="mt-3">
+          <Button
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            className="w-full md:w-auto h-8 text-xs"
+          >
+            {isSubmitting ? 'Processing...' : 'Complete Transaction'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
