@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Package, TrendingUp, Users, Clock, QrCode, Plus, Hammer, Wrench } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useDashboard } from '@/lib/hooks/use-dashboard';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const { stats, recentActivity, loading, error } = useDashboard();
+  const router = useRouter();
 
   const dashboardStats = [
     {
@@ -82,7 +84,10 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="github-button github-button-sm">
+            <button
+              className="github-button github-button-sm"
+              onClick={() => router.push('/dashboard/scanner')}
+            >
               <QrCode className="h-3 w-3 mr-1" />
               Scan QR
             </button>
@@ -170,7 +175,11 @@ export default function DashboardPage() {
             <div className="space-y-2">
               <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Available to Everyone</h4>
               <div className="grid gap-2">
-                <Button variant="outline" className="justify-start h-auto p-2">
+                <Button
+                  variant="outline"
+                  className="justify-start h-auto p-2"
+                  onClick={() => router.push('/dashboard/scanner')}
+                >
                   <QrCode className="h-4 w-4 mr-2" />
                   <div className="text-left">
                     <div className="font-medium text-xs">Scan QR Code</div>

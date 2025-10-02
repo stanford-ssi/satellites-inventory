@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, TriangleAlert as AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, TriangleAlert as AlertTriangle, Loader2, FileDown } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useInventory } from '@/lib/hooks/use-inventory';
 import { QrCodeModal } from '@/components/inventory/qr-code-modal';
 import { useState } from 'react';
+import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
 
 export default function InventoryPage() {
   const { profile } = useAuth();
@@ -17,11 +18,29 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ partId: string; description: string } | null>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const { inventory, loading, error } = useInventory();
 
   const handleShowQrCode = (partId: string, description: string) => {
     setSelectedItem({ partId, description });
     setQrModalOpen(true);
+  };
+
+  const handleGenerateBulkQrPdf = async () => {
+    try {
+      setGeneratingPdf(true);
+      const partsForPdf = visibleInventory.map(item => ({
+        part_id: item.part_id,
+        description: item.description
+      }));
+
+      await generateBulkQrPdf(partsForPdf, `qr-codes-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   const visibleInventory = inventory.filter(item =>
@@ -87,6 +106,18 @@ export default function InventoryPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <button
+              className="github-button github-button-sm"
+              onClick={handleGenerateBulkQrPdf}
+              disabled={generatingPdf || visibleInventory.length === 0}
+            >
+              {generatingPdf ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <FileDown className="h-3 w-3 mr-1" />
+              )}
+              {generatingPdf ? 'Generating...' : 'Print QR Codes'}
+            </button>
             {isAdmin && (
               <button className="github-button github-button-primary github-button-sm">
                 <Plus className="h-4 w-4 mr-1" />
