@@ -195,7 +195,8 @@ export function AddPartModal({ isOpen, onClose, onSuccess }: AddPartModalProps) 
       }
 
       // Insert the new part
-      const { error: insertError } = await supabase
+      console.log('Attempting to insert part:', finalPartId);
+      const { data, error: insertError } = await supabase
         .from('inventory')
         .insert({
           part_id: finalPartId,
@@ -207,7 +208,10 @@ export function AddPartModal({ isOpen, onClose, onSuccess }: AddPartModalProps) 
           part_link: partLink || null,
           qr_code: `QR-${finalPartId}`,
           is_sensitive: isSensitive === 'true'
-        });
+        })
+        .select();
+
+      console.log('Insert result:', { data, error: insertError });
 
       if (insertError) {
         console.error('Insert error:', insertError);
@@ -220,9 +224,10 @@ export function AddPartModal({ isOpen, onClose, onSuccess }: AddPartModalProps) 
       resetForm();
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to add part:', error);
-      setError('An unexpected error occurred. Please try again.');
+      setError(error?.message || 'An unexpected error occurred. Please try again.');
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -251,8 +256,8 @@ export function AddPartModal({ isOpen, onClose, onSuccess }: AddPartModalProps) 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                  <SelectItem value="external">External Vendor/Manufacturer</SelectItem>
                 <SelectItem value="internal">Internal (XX-YYYYvZ.Z)</SelectItem>
-                <SelectItem value="external">External (Vendor/Manufacturer)</SelectItem>
               </SelectContent>
             </Select>
 

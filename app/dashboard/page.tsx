@@ -130,10 +130,13 @@ export default function DashboardPage() {
               const isConsume = activity.type === 'adjustment' && activity.quantity < 0;
               const displayType = isConsume ? 'consume' : activity.type;
               const badgeClass =
-                activity.type === 'checkout' ? 'clean-badge-active' :
+                activity.type === 'checkout' ? 'clean-badge-checkout' :
                 activity.type === 'return' ? 'clean-badge-checkin' :
                 activity.type === 'build' ? 'clean-badge-admin' :
                 isConsume ? 'clean-badge-checkout' : 'clean-badge-restricted';
+
+              // Checkout transactions should display as negative
+              const displayQuantity = activity.type === 'checkout' ? -activity.quantity : activity.quantity;
 
               return (
                 <div key={activity.id} className="flex items-center justify-between">
@@ -147,7 +150,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500">
-                      {activity.user} • {activity.quantity > 0 ? '+' : ''}{activity.quantity} {activity.type === 'build' ? 'built' : 'units'}
+                      {activity.user} • {displayQuantity > 0 ? '+' : ''}{displayQuantity} {activity.type === 'build' ? 'built' : 'units'}
                     </p>
                   </div>
                   <span className="text-xs text-gray-500">
