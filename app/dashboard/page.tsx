@@ -91,12 +91,6 @@ export default function DashboardPage() {
               <QrCode className="h-3 w-3 mr-1" />
               Scan QR
             </button>
-            {isAdmin && (
-              <button className="github-button github-button-primary github-button-sm">
-                <Plus className="h-3 w-3 mr-1" />
-                Add Part
-              </button>
-            )}
           </div>
         </div>
       </div>

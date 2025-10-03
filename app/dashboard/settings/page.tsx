@@ -4,25 +4,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { User, Bell, Shield, Database, Save } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { User, Shield, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
+  const router = useRouter();
   const isAdmin = profile?.role === 'admin';
 
-  const [settings, setSettings] = useState({
-    displayName: profile?.name || '',
-    email: profile?.email || '',
-    notifications: true,
-    compactMode: false,
-    autoRefresh: true,
-  });
+  const [displayName, setDisplayName] = useState('');
 
-  const handleSave = () => {
-    // TODO: Implement settings save
-    console.log('Saving settings:', settings);
+  // Initialize display name from profile when it loads
+  useEffect(() => {
+    if (profile?.name) {
+      setDisplayName(profile.name);
+    }
+  }, [profile?.name]);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/login');
   };
 
   return (
@@ -30,172 +43,104 @@ export default function SettingsPage() {
       <div className="minimal-header">
         <div>
           <h1>Settings</h1>
-          <p>Manage your account preferences and application settings.</p>
+          <p>Manage your profile and preferences</p>
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {/* Profile Settings */}
-        <div className="dashboard-card">
-          <div className="dashboard-card-header">
-            <User className="h-4 w-4 text-gray-500" />
-            <div className="dashboard-card-title">Profile Information</div>
+      {/* Profile Section */}
+      <div className="dashboard-card">
+        <div className="dashboard-card-header">
+          <User className="h-4 w-4 text-gray-500" />
+          <div className="dashboard-card-title">Profile</div>
+        </div>
+
+        <div className="flex items-start gap-6 mt-4">
+          {/* Profile Photo */}
+          <div className="flex-shrink-0">
+            <Avatar className="h-24 w-24">
+              <AvatarFallback className="text-2xl font-medium">
+                {profile?.name ? getInitials(profile.name) : 'U'}
+              </AvatarFallback>
+            </Avatar>
           </div>
-          <div className="space-y-3">
+
+          {/* Profile Info */}
+          <div className="flex-1 space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="displayName" className="text-xs font-medium">Display Name</Label>
+              <Label htmlFor="displayName" className="text-xs font-semibold text-gray-900">Display Name</Label>
               <Input
                 id="displayName"
-                className="github-input"
-                value={settings.displayName}
-                onChange={(e) => setSettings({...settings, displayName: e.target.value})}
+                className="github-input text-xs h-8"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
               />
             </div>
+
             <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs font-medium">Email Address</Label>
+              <Label htmlFor="email" className="text-xs font-semibold text-gray-900">Email Address</Label>
               <Input
                 id="email"
                 type="email"
-                className="github-input"
-                value={settings.email}
+                className="github-input text-xs h-8"
+                value={profile?.email || ''}
                 disabled
               />
               <p className="text-xs text-gray-500">Email cannot be changed</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={isAdmin ? "destructive" : "secondary"} className="text-xs">
-                {isAdmin ? "Admin" : "Member"}
-              </Badge>
-              <span className="text-xs text-gray-500">Role assigned by administrator</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Application Preferences */}
-        <div className="dashboard-card">
-          <div className="dashboard-card-header">
-            <Bell className="h-4 w-4 text-gray-500" />
-            <div className="dashboard-card-title">Preferences</div>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-medium">Email Notifications</Label>
-                <p className="text-xs text-gray-500">Receive alerts for low stock and system updates</p>
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-gray-900">Role</Label>
+              <div className="flex items-center gap-2">
+                <Badge variant={isAdmin ? "default" : "secondary"} className="text-xs">
+                  {isAdmin ? "Admin" : "Member"}
+                </Badge>
+                <span className="text-xs text-gray-500">Assigned by administrator</span>
               </div>
-              <input
-                type="checkbox"
-                className="h-4 w-4"
-                checked={settings.notifications}
-                onChange={(e) => setSettings({...settings, notifications: e.target.checked})}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-medium">Compact Mode</Label>
-                <p className="text-xs text-gray-500">Reduce spacing and use smaller text</p>
-              </div>
-              <input
-                type="checkbox"
-                className="h-4 w-4"
-                checked={settings.compactMode}
-                onChange={(e) => setSettings({...settings, compactMode: e.target.checked})}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-medium">Auto Refresh</Label>
-                <p className="text-xs text-gray-500">Automatically refresh inventory data</p>
-              </div>
-              <input
-                type="checkbox"
-                className="h-4 w-4"
-                checked={settings.autoRefresh}
-                onChange={(e) => setSettings({...settings, autoRefresh: e.target.checked})}
-              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Security & Access */}
+      {/* Preferences */}
       <div className="dashboard-card">
         <div className="dashboard-card-header">
           <Shield className="h-4 w-4 text-gray-500" />
-          <div className="dashboard-card-title">Security & Access</div>
+          <div className="dashboard-card-title">Access</div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Account Security</h4>
-            <div className="space-y-2">
-              <Button variant="outline" className="justify-start h-auto p-2 w-full">
-                <div className="text-left">
-                  <div className="font-medium text-xs">Change Password</div>
-                  <div className="text-xs text-gray-500">Update your account password</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto p-2 w-full">
-                <div className="text-left">
-                  <div className="font-medium text-xs">Two-Factor Authentication</div>
-                  <div className="text-xs text-gray-500">Enable 2FA for added security</div>
-                </div>
-              </Button>
+
+        <div className="mt-3">
+          {/* Sensitive Parts Access */}
+          <div className="p-3 border border-gray-200 rounded-md">
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="h-4 w-4 text-gray-500" />
+              <Label className="text-xs font-semibold text-gray-900">Sensitive Parts Access</Label>
             </div>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Data Access</h4>
-            <div className="space-y-2">
-              <div className="p-2 border border-gray-200 rounded-md">
-                <div className="font-medium text-xs">Sensitive Parts Access</div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {isAdmin ? "Full access to all inventory items" : "Restricted access to sensitive components"}
-                </div>
-                <Badge variant={isAdmin ? "default" : "outline"} className="text-xs mt-1">
-                  {isAdmin ? "Granted" : "Limited"}
-                </Badge>
-              </div>
-            </div>
+            <p className="text-xs text-gray-500 mb-2">
+              {isAdmin ? "Full access to all inventory items" : "Restricted access to sensitive components"}
+            </p>
+            <Badge variant={isAdmin ? "default" : "outline"} className="text-xs">
+              {isAdmin ? "Granted" : "Limited"}
+            </Badge>
           </div>
         </div>
       </div>
 
-      {/* System Information (Admin Only) */}
-      {isAdmin && (
-        <div className="dashboard-card">
-          <div className="dashboard-card-header">
-            <Database className="h-4 w-4 text-gray-500" />
-            <div className="dashboard-card-title">System Information</div>
-          </div>
-          <div className="dashboard-card-description mb-3">Application and database status</div>
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>App Version</span>
-                <span className="font-mono">v1.0.0</span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Database Status</span>
-                <span className="text-green-600">Connected</span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Last Backup</span>
-                <span className="font-mono">2h ago</span>
-              </div>
-            </div>
-          </div>
+      {/* Account Actions */}
+      <div className="dashboard-card">
+        <div className="dashboard-card-header">
+          <div className="dashboard-card-title">Account Actions</div>
         </div>
-      )}
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} className="github-button github-button-primary">
-          <Save className="h-4 w-4 mr-2" />
-          Save Settings
-        </Button>
+        <div className="mt-3">
+          <Button
+            variant="outline"
+            className="w-full md:w-auto h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-3 w-3 mr-2" />
+            Log Out
+          </Button>
+        </div>
       </div>
     </div>
   );

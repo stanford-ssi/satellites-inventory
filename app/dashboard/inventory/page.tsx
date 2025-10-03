@@ -12,10 +12,12 @@ import { QrCodeModal } from '@/components/inventory/qr-code-modal';
 import { AddPartModal } from '@/components/inventory/add-part-modal';
 import { useState } from 'react';
 import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
+import { useRouter } from 'next/navigation';
 
 export default function InventoryPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [addPartModalOpen, setAddPartModalOpen] = useState(false);
@@ -51,7 +53,6 @@ export default function InventoryPage() {
   );
 
   const lowStockCount = visibleInventory.filter(item => item.quantity <= item.min_quantity).length;
-  const totalValue = visibleInventory.reduce((sum, item) => sum + (item.quantity * 1.5), 0); // Estimated value
 
   if (loading) {
     return (
@@ -86,9 +87,6 @@ export default function InventoryPage() {
             <h1>Inventory Management</h1>
             <p>
               {visibleInventory.length} parts
-              {isAdmin && (
-                <span> • ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} total value</span>
-              )}
               {lowStockCount > 0 && (
                 <span className="ml-2 text-orange-600">
                   • {lowStockCount} items low stock
@@ -121,13 +119,22 @@ export default function InventoryPage() {
               {generatingPdf ? 'Generating...' : 'Print QR Codes'}
             </button>
             {isAdmin && (
-              <button
-                className="github-button github-button-primary github-button-sm"
-                onClick={() => setAddPartModalOpen(true)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Part
-              </button>
+              <>
+                <button
+                  className="github-button github-button-primary github-button-sm"
+                  onClick={() => setAddPartModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add New Part
+                </button>
+                <button
+                  className="github-button github-button-primary github-button-sm"
+                  onClick={() => router.push('/dashboard/add-stock')}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Restock
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -142,8 +149,6 @@ export default function InventoryPage() {
               <th style={{width: '120px'}}>Location</th>
               <th style={{width: '60px'}} className="text-center">Qty</th>
               <th style={{width: '60px'}} className="text-center">Min</th>
-              {isAdmin && <th style={{width: '80px'}} className="text-center">Unit Cost</th>}
-              {isAdmin && <th style={{width: '100px'}} className="text-center">Total Value</th>}
               <th style={{width: '100px'}}>Status</th>
               <th style={{width: '80px'}}>Actions</th>
             </tr>
@@ -178,16 +183,6 @@ export default function InventoryPage() {
                 <td className="text-center">
                   {item.min_quantity}
                 </td>
-                {isAdmin && (
-                  <td className="text-center">
-                    $1.50
-                  </td>
-                )}
-                {isAdmin && (
-                  <td className="text-center">
-                    ${(item.quantity * 1.5).toFixed(2)}
-                  </td>
-                )}
                 <td>
                   <div className="flex flex-wrap gap-1">
                     {item.is_sensitive && (
@@ -221,11 +216,6 @@ export default function InventoryPage() {
                       <a href={item.part_link} target="_blank" rel="noopener noreferrer" className="github-button github-button-sm">
                         <ExternalLink className="h-3 w-3" />
                       </a>
-                    )}
-                    {isAdmin && (
-                      <button className="github-button github-button-sm">
-                        <Edit className="h-3 w-3" />
-                      </button>
                     )}
                   </div>
                 </td>

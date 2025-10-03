@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { PackagePlus, Package } from 'lucide-react';
+import { PackagePlus, Package, Plus } from 'lucide-react';
+import { AddPartModal } from '@/components/inventory/add-part-modal';
 
 export default function AddStockPage() {
   const { profile } = useAuth();
@@ -20,6 +21,7 @@ export default function AddStockPage() {
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addPartModalOpen, setAddPartModalOpen] = useState(false);
 
   // Redirect non-admins
   useEffect(() => {
@@ -107,9 +109,17 @@ export default function AddStockPage() {
       <div className="minimal-header">
         <div className="flex justify-between items-start">
           <div>
-            <h1>Add Stock</h1>
+            <h1>Restock</h1>
             <p>Add inventory quantity (Admin Only)</p>
           </div>
+          <button
+            type="button"
+            className="github-button github-button-primary github-button-sm"
+            onClick={() => setAddPartModalOpen(true)}
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add New Part
+          </button>
         </div>
       </div>
 
@@ -206,10 +216,15 @@ export default function AddStockPage() {
             disabled={!isValid || isSubmitting}
             className="w-full md:w-auto h-8 text-xs"
           >
-            {isSubmitting ? 'Processing...' : 'Add Stock'}
+            {isSubmitting ? 'Processing...' : 'Restock'}
           </Button>
         </div>
       </form>
+
+      <AddPartModal
+        isOpen={addPartModalOpen}
+        onClose={() => setAddPartModalOpen(false)}
+      />
     </div>
   );
 }

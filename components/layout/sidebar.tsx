@@ -30,6 +30,11 @@ const navigation = [
     href: '/dashboard/my-items',
     icon: UserCircle,
   },
+  {
+    name: 'Settings',
+    href: '/dashboard/settings',
+    icon: Settings,
+  },
 ];
 
 const adminNavigation = [
@@ -52,11 +57,6 @@ const adminNavigation = [
     name: 'Manage Users',
     href: '/dashboard/users',
     icon: Users,
-  },
-  {
-    name: 'Settings',
-    href: '/dashboard/settings',
-    icon: Settings,
   },
 ];
 
