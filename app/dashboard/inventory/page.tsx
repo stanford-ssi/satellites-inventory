@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useInventory } from '@/lib/hooks/use-inventory';
 import { QrCodeModal } from '@/components/inventory/qr-code-modal';
 import { AddPartModal } from '@/components/inventory/add-part-modal';
+import { EditPartModal } from '@/components/inventory/edit-part-modal';
 import { useState } from 'react';
 import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
 import { useRouter } from 'next/navigation';
@@ -23,14 +24,21 @@ export default function InventoryPage() {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [addPartModalOpen, setAddPartModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ partId: string; description: string } | null>(null);
+  const [editingPart, setEditingPart] = useState<any>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfColumns, setPdfColumns] = useState(3);
   const [columnModalOpen, setColumnModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const { inventory, loading, error, refetch } = useInventory();
 
   const handleShowQrCode = (partId: string, description: string) => {
     setSelectedItem({ partId, description });
     setQrModalOpen(true);
+  };
+
+  const handleEditPart = (part: any) => {
+    setEditingPart(part);
+    setEditModalOpen(true);
   };
 
   const handleOpenColumnModal = () => {
@@ -221,9 +229,18 @@ export default function InventoryPage() {
                       <QrCode className="h-3 w-3" />
                     </button>
                     {item.part_link && (
-                      <a href={item.part_link} target="_blank" rel="noopener noreferrer" className="github-button github-button-sm">
+                      <a href={item.part_link} target="_blank" rel="noopener noreferrer" className="github-button github-button-sm" title="View Part Link">
                         <ExternalLink className="h-3 w-3" />
                       </a>
+                    )}
+                    {isAdmin && (
+                      <button
+                        className="github-button github-button-sm"
+                        onClick={() => handleEditPart(item)}
+                        title="Edit Part"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </button>
                     )}
                   </div>
                 </td>
@@ -318,6 +335,14 @@ export default function InventoryPage() {
         isOpen={addPartModalOpen}
         onClose={() => setAddPartModalOpen(false)}
         onSuccess={() => refetch()}
+      />
+
+      {/* Edit Part Modal */}
+      <EditPartModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={() => refetch()}
+        part={editingPart}
       />
     </div>
   );
