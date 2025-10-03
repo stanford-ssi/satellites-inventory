@@ -120,7 +120,7 @@ export default function TransactionsPage() {
                       <div className="flex items-center gap-2">
                         {transaction.type === 'checkout' ? (
                           <>
-                            <ArrowUpCircle className="h-4 w-4 text-orange-500" />
+                            <ArrowUpCircle className="h-4 w-4 text-red-500" />
                             <span className="clean-badge clean-badge-checkout">Out</span>
                           </>
                         ) : transaction.type === 'return' ? (
@@ -128,9 +128,19 @@ export default function TransactionsPage() {
                             <ArrowDownCircle className="h-4 w-4 text-green-500" />
                             <span className="clean-badge clean-badge-checkin">In</span>
                           </>
+                        ) : transaction.type === 'adjustment' && transaction.quantity < 0 ? (
+                          <>
+                            <ArrowUpCircle className="h-4 w-4 text-red-500" />
+                            <span className="clean-badge clean-badge-checkout">Consume</span>
+                          </>
+                        ) : transaction.type === 'adjustment' && transaction.quantity > 0 ? (
+                          <>
+                            <Plus className="h-4 w-4 text-green-500" />
+                            <span className="clean-badge clean-badge-checkin">Add</span>
+                          </>
                         ) : (
                           <>
-                            <Plus className="h-4 w-4 text-blue-500" />
+                            <Plus className="h-4 w-4 text-green-500" />
                             <span className="clean-badge clean-badge-checkin">Add</span>
                           </>
                         )}
@@ -143,7 +153,7 @@ export default function TransactionsPage() {
                       <div>{transaction.inventory?.description || 'N/A'}</div>
                     </td>
                     <td className="text-center">
-                      {transaction.quantity}
+                      {Math.abs(transaction.quantity)}
                     </td>
                     <td className="text-xs text-gray-500">
                       {transaction.users?.email || transaction.users?.name || 'Unknown'}

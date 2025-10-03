@@ -132,30 +132,36 @@ export default function DashboardPage() {
           </div>
           <div className="dashboard-card-description mb-3">Latest inventory and manufacturing activity</div>
           <div className="space-y-2">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className={`clean-badge ${
-                      activity.type === 'checkout' ? 'clean-badge-active' :
-                      activity.type === 'return' ? 'clean-badge-member' :
-                      activity.type === 'build' ? 'clean-badge-admin' : 'clean-badge-restricted'
-                    }`}>
-                      {activity.type}
-                    </span>
-                    <span className="font-medium text-xs">
-                      {activity.part || activity.board}
-                    </span>
+            {recentActivity.map((activity) => {
+              const isConsume = activity.type === 'adjustment' && activity.quantity < 0;
+              const displayType = isConsume ? 'consume' : activity.type;
+              const badgeClass =
+                activity.type === 'checkout' ? 'clean-badge-active' :
+                activity.type === 'return' ? 'clean-badge-checkin' :
+                activity.type === 'build' ? 'clean-badge-admin' :
+                isConsume ? 'clean-badge-checkout' : 'clean-badge-restricted';
+
+              return (
+                <div key={activity.id} className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`clean-badge ${badgeClass}`}>
+                        {displayType}
+                      </span>
+                      <span className="font-medium text-xs">
+                        {activity.part || activity.board}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {activity.user} • {activity.quantity > 0 ? '+' : ''}{activity.quantity} {activity.type === 'build' ? 'built' : 'units'}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    {activity.user} • {activity.quantity > 0 ? '+' : ''}{activity.quantity} {activity.type === 'build' ? 'built' : 'units'}
-                  </p>
+                  <span className="text-xs text-gray-500">
+                    {activity.timestamp}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500">
-                  {activity.timestamp}
-                </span>
-              </div>
-            ))}
+              );
+            })}
 
             {recentActivity.length === 0 && (
               <div className="text-center py-4 text-gray-500 text-xs">

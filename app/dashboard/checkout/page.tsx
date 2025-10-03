@@ -175,13 +175,18 @@ export default function CheckoutPage() {
       } as const;
 
       // Create the transaction
+      // For consume, store negative quantity to differentiate from add stock
+      const transactionQuantity = transactionType === 'consume'
+        ? -parseInt(quantity)
+        : parseInt(quantity);
+
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
           part_id: inventoryItem.id,
           user_id: userId,
           type: transactionTypeMap[transactionType],
-          quantity: parseInt(quantity),
+          quantity: transactionQuantity,
           notes: notes || null
         });
 
@@ -293,7 +298,7 @@ export default function CheckoutPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="take">Check Out</SelectItem>
-                    <SelectItem value="consume">Use (permanent)</SelectItem>
+                    <SelectItem value="consume">Consume</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
