@@ -241,7 +241,7 @@ export default function CheckoutPage() {
       <div className="minimal-header">
         <div className="flex justify-between items-start">
           <div>
-            <h1>Check Out / Use Items</h1>
+            <h1>Check Out / Consume Parts</h1>
             <p>Check out items to borrow or mark items as used</p>
           </div>
           <button
