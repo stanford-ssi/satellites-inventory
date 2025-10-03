@@ -1,7 +1,11 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, UserPlus, Edit, Trash2, Shield, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Users, Search, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -21,6 +25,15 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    userId: string;
+    userName: string;
+    currentRole: 'admin' | 'member';
+    newRole: 'admin' | 'member';
+  } | null>(null);
+  const [confirmationText, setConfirmationText] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (isAdmin) {
@@ -49,20 +62,62 @@ export default function UsersPage() {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'member') => {
+  const initiateRoleChange = (user: User, newRole: 'admin' | 'member') => {
+    // Prevent admins from demoting other admins
+    if (user.role === 'admin' && newRole === 'member') {
+      alert('You cannot demote other administrators. This is a security measure.');
+      return;
+    }
+
+    // Set pending change and open confirmation modal
+    setPendingRoleChange({
+      userId: user.id,
+      userName: user.name,
+      currentRole: user.role,
+      newRole: newRole,
+    });
+    setConfirmationText('');
+    setConfirmModalOpen(true);
+  };
+
+  const confirmRoleChange = async () => {
+    if (!pendingRoleChange) return;
+
+    // Verify confirmation text matches user name
+    if (confirmationText !== pendingRoleChange.userName) {
+      alert('The name you entered does not match. Please try again.');
+      return;
+    }
+
+    setIsUpdating(true);
+
     try {
       const { error } = await supabase
         .from('users')
-        .update({ role: newRole })
-        .eq('id', userId);
+        .update({ role: pendingRoleChange.newRole })
+        .eq('id', pendingRoleChange.userId);
 
       if (error) throw error;
 
       // Refresh users list
-      fetchUsers();
+      await fetchUsers();
+
+      // Close modal and reset state
+      setConfirmModalOpen(false);
+      setPendingRoleChange(null);
+      setConfirmationText('');
     } catch (error) {
       console.error('Error updating user role:', error);
+      alert('Failed to update user role. Please try again.');
+    } finally {
+      setIsUpdating(false);
     }
+  };
+
+  const cancelRoleChange = () => {
+    setConfirmModalOpen(false);
+    setPendingRoleChange(null);
+    setConfirmationText('');
   };
 
   // Redirect if not admin
@@ -102,21 +157,15 @@ export default function UsersPage() {
             <p>{filteredUsers.length} users • {filteredUsers.filter(u => u.role === 'admin').length} admins</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="search-container">
-              <Search className="search-icon w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                className="search-input"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button className="github-button github-button-primary github-button-sm">
-              <UserPlus className="h-4 w-4 mr-1" />
-              Invite User
-            </button>
+          <div className="search-container">
+            <Search className="search-icon w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              className="search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
       </div>
@@ -129,7 +178,6 @@ export default function UsersPage() {
               <th style={{minWidth: '250px'}}>Email</th>
               <th style={{width: '100px'}}>Role</th>
               <th style={{width: '150px'}}>Joined</th>
-              <th style={{width: '120px'}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -155,9 +203,17 @@ export default function UsersPage() {
                 </td>
                 <td>
                   <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'member')}
-                    className="github-input text-xs"
+                    key={`role-${user.id}-${user.role}`}
+                    defaultValue={user.role}
+                    onChange={(e) => {
+                      const newRole = e.target.value as 'admin' | 'member';
+                      if (newRole !== user.role) {
+                        initiateRoleChange(user, newRole);
+                      }
+                      // Reset dropdown to original value
+                      e.target.value = user.role;
+                    }}
+                    className="github-input text-xs h-8"
                     disabled={user.id === profile?.id} // Can't change own role
                   >
                     <option value="member">Member</option>
@@ -170,22 +226,6 @@ export default function UsersPage() {
                     <span className="text-xs text-gray-500">
                       {new Date(user.created_at).toLocaleDateString()}
                     </span>
-                  </div>
-                </td>
-                <td>
-                  <div className="flex items-center gap-1">
-                    <button
-                      className="github-button github-button-sm"
-                      disabled={user.id === profile?.id}
-                    >
-                      <Edit className="h-3 w-3" />
-                    </button>
-                    <button
-                      className="github-button github-button-sm text-red-600 hover:bg-red-50"
-                      disabled={user.id === profile?.id}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -239,6 +279,67 @@ export default function UsersPage() {
           <div className="stat-card-description">Recent signups</div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Dialog open={confirmModalOpen} onOpenChange={cancelRoleChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Confirm Role Change
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              This action cannot be undone. This will change the user's permissions.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {pendingRoleChange && (
+              <>
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                  <div className="text-xs text-gray-500 mb-1">Changing role for:</div>
+                  <div className="font-semibold text-sm">{pendingRoleChange.userName}</div>
+                  <div className="text-xs text-gray-600 mt-2">
+                    <span className="font-medium">From:</span> {pendingRoleChange.currentRole} → <span className="font-medium">To:</span> {pendingRoleChange.newRole}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-name" className="text-xs font-semibold text-gray-900">
+                    Type <span className="font-mono bg-gray-100 px-1 py-0.5 rounded">{pendingRoleChange.userName}</span> to confirm:
+                  </Label>
+                  <Input
+                    id="confirm-name"
+                    value={confirmationText}
+                    onChange={(e) => setConfirmationText(e.target.value)}
+                    placeholder="Enter user name"
+                    className="github-input text-xs h-8"
+                    autoComplete="off"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={cancelRoleChange}
+              disabled={isUpdating}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmRoleChange}
+              disabled={isUpdating || confirmationText !== pendingRoleChange?.userName}
+              className="h-8 text-xs bg-orange-600 hover:bg-orange-700"
+            >
+              {isUpdating ? 'Updating...' : 'Confirm Change'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
