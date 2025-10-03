@@ -9,6 +9,7 @@ import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, Triang
 import { useAuth } from '@/lib/auth/auth-context';
 import { useInventory } from '@/lib/hooks/use-inventory';
 import { QrCodeModal } from '@/components/inventory/qr-code-modal';
+import { AddPartModal } from '@/components/inventory/add-part-modal';
 import { useState } from 'react';
 import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
 
@@ -17,9 +18,10 @@ export default function InventoryPage() {
   const isAdmin = profile?.role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [addPartModalOpen, setAddPartModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ partId: string; description: string } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const { inventory, loading, error } = useInventory();
+  const { inventory, loading, error, refetch } = useInventory();
 
   const handleShowQrCode = (partId: string, description: string) => {
     setSelectedItem({ partId, description });
@@ -119,7 +121,10 @@ export default function InventoryPage() {
               {generatingPdf ? 'Generating...' : 'Print QR Codes'}
             </button>
             {isAdmin && (
-              <button className="github-button github-button-primary github-button-sm">
+              <button
+                className="github-button github-button-primary github-button-sm"
+                onClick={() => setAddPartModalOpen(true)}
+              >
                 <Plus className="h-4 w-4 mr-1" />
                 Add Part
               </button>
@@ -249,6 +254,13 @@ export default function InventoryPage() {
           description={selectedItem.description}
         />
       )}
+
+      {/* Add Part Modal */}
+      <AddPartModal
+        isOpen={addPartModalOpen}
+        onClose={() => setAddPartModalOpen(false)}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }
