@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/auth-context';
-import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users, QrCode } from 'lucide-react';
+import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
@@ -63,19 +63,13 @@ export function Header() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/scanner" className="flex items-center cursor-pointer">
-                  <QrCode className="h-4 w-4 mr-2" />
-                  Scan QR
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link href="/dashboard/my-items" className="flex items-center cursor-pointer">
                   <UserCircle className="h-4 w-4 mr-2" />
                   My Items
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="flex items-center cursor-pointer">
+                <Link href="/dashboard/profile" className="flex items-center cursor-pointer">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </Link>
@@ -128,7 +122,7 @@ export function Header() {
 
         <nav className="flex items-center space-x-2">
           {user && profile && (
-            <Link href="/dashboard/settings">
+            <Link href="/dashboard/profile">
               <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs font-medium">

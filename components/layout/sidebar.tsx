@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useSidebar } from '@/lib/contexts/sidebar-context';
-import { Package, ChartBar as BarChart3, History, Settings, Users, X, Hammer, AlertCircle, PackagePlus, UserCircle, QrCode, Wrench } from 'lucide-react';
+import { Package, ChartBar as BarChart3, History, Settings, Users, X, Hammer, ShoppingBag, AlertCircle, PackagePlus, UserCircle, QrCode, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -20,14 +20,17 @@ const navigation = [
     href: '/dashboard/inventory',
     icon: Package,
   },
+];
+
+const buildNavigation = [
+  {
+    name: 'Use Parts',
+    href: '/dashboard/checkout',
+    icon: ShoppingBag,
+  },
   {
     name: 'Boards',
     href: '/dashboard/boards',
-    icon: Wrench,
-  },
-  {
-    name: 'Build',
-    href: '/dashboard/checkout',
     icon: Hammer,
   },
   {
@@ -35,14 +38,17 @@ const navigation = [
     href: '/dashboard/scanner',
     icon: QrCode,
   },
+];
+
+const profileNavigation = [
   {
     name: 'My Items',
     href: '/dashboard/my-items',
     icon: UserCircle,
   },
   {
-    name: 'Settings',
-    href: '/dashboard/settings',
+    name: 'Profile',
+    href: '/dashboard/profile',
     icon: Settings,
   },
 ];
@@ -213,6 +219,81 @@ export function Sidebar() {
                 );
               })}
             </nav>
+
+            <>
+              <div className="my-3 h-px bg-border" />
+              <nav className="space-y-1">
+                {showLabels && (
+                  <div className="px-3 py-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Build
+                    </p>
+                  </div>
+                )}
+                {buildNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+
+                  return (
+                    <Link key={item.name} href={item.href}>
+                      <Button
+                        variant={isActive ? 'default' : 'ghost'}
+                        size="sm"
+                        className={cn(
+                          'w-full h-9 text-sm transition-all',
+                          showLabels ? 'justify-start gap-3 px-3' : 'justify-center px-0',
+                          isActive && 'bg-primary text-primary-foreground'
+                        )}
+                        title={!showLabels ? item.name : undefined}
+                      >
+                        <Icon className="h-4 w-4 flex-shrink-0" />
+                        {showLabels && (
+                          <span className="truncate">{item.name}</span>
+                        )}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </>
+            
+            <>
+              <div className="my-3 h-px bg-border" />
+              <nav className="space-y-1">
+                {showLabels && (
+                  <div className="px-3 py-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Profile
+                    </p>
+                  </div>
+                )}
+                {profileNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+
+                  return (
+                    <Link key={item.name} href={item.href}>
+                      <Button
+                        variant={isActive ? 'default' : 'ghost'}
+                        size="sm"
+                        className={cn(
+                          'w-full h-9 text-sm transition-all',
+                          showLabels ? 'justify-start gap-3 px-3' : 'justify-center px-0',
+                          isActive && 'bg-primary text-primary-foreground'
+                        )}
+                        title={!showLabels ? item.name : undefined}
+                      >
+                        <Icon className="h-4 w-4 flex-shrink-0" />
+                        {showLabels && (
+                          <span className="truncate">{item.name}</span>
+                        )}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </>
+
 
             {isAdmin && (
               <>
