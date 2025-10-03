@@ -151,12 +151,12 @@ export default function InventoryPage() {
           <tbody>
             {visibleInventory.map((item) => (
               <tr key={item.id}>
-                <td className="font-mono font-medium">
+                <td className="font-semibold">
                   {item.part_id}
                 </td>
                 <td>
                   <div>
-                    <div className="font-medium">{item.description}</div>
+                    <div>{item.description}</div>
                     <div className="text-xs text-gray-500 mt-0.5">
                       Updated: {new Date(item.updated_at).toLocaleDateString()}
                     </div>
@@ -164,27 +164,27 @@ export default function InventoryPage() {
                 </td>
                 <td>
                   {item.is_sensitive && !isAdmin ? (
-                    <span className="text-gray-500 italic text-sm">Restricted</span>
+                    <span className="text-gray-500 italic">Restricted</span>
                   ) : (
                     <div>
-                      <div className="font-medium text-sm">{item.bin_id}</div>
+                      <div>{item.bin_id}</div>
                       <div className="text-xs text-gray-500">{item.location_within_bin}</div>
                     </div>
                   )}
                 </td>
-                <td className="text-right font-mono">
+                <td className="text-right">
                   {item.quantity}
                 </td>
-                <td className="text-right font-mono text-gray-500">
+                <td className="text-right">
                   {item.min_quantity}
                 </td>
                 {isAdmin && (
-                  <td className="text-right font-mono">
+                  <td className="text-right">
                     $1.50
                   </td>
                 )}
                 {isAdmin && (
-                  <td className="text-right font-mono font-medium">
+                  <td className="text-right">
                     ${(item.quantity * 1.5).toFixed(2)}
                   </td>
                 )}
