@@ -44,8 +44,8 @@ const adminNavigation = [
     icon: AlertCircle,
   },
   {
-    name: 'Add Stock',
-    href: '/dashboard/add-stock',
+    name: 'Restock',
+    href: '/dashboard/restock',
     icon: PackagePlus,
   },
   {

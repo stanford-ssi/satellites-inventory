@@ -129,7 +129,7 @@ export default function InventoryPage() {
                 </button>
                 <button
                   className="github-button github-button-primary github-button-sm"
-                  onClick={() => router.push('/dashboard/add-stock')}
+                  onClick={() => router.push('/dashboard/restock')}
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Restock

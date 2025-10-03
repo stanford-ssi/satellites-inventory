@@ -85,9 +85,9 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/add-stock" className="flex items-center cursor-pointer">
+                    <Link href="/dashboard/restock" className="flex items-center cursor-pointer">
                       <PackagePlus className="h-4 w-4 mr-2" />
-                      Add Stock
+                      Restock
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

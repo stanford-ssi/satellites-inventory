@@ -50,7 +50,7 @@ export default function AddStockPage() {
       }
 
       if (!profile?.id) {
-        alert('You must be logged in as an admin to add stock.');
+        alert('You must be logged in as an admin to restock.');
         setIsSubmitting(false);
         return;
       }
@@ -91,7 +91,7 @@ export default function AddStockPage() {
       // Success - redirect to inventory page
       router.push('/dashboard/inventory');
     } catch (error) {
-      console.error('Failed to add stock:', error);
+      console.error('Failed to restock:', error);
       alert('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
