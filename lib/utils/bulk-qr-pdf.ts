@@ -88,24 +88,35 @@ export async function generateBulkQrPdf(parts: PartForQR[], fileName: string = '
       const partIdX = x + (colWidth - partIdWidth) / 2;
       pdf.text(partIdText, partIdX, partIdY);
 
-      // Add description below part ID (normal weight, smaller, truncated if needed)
+      // Add description below part ID (normal weight, smaller, wrapped to multiple lines)
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(7);
       const descY = partIdY + 3.5;
-      let description = part.description;
-
-      // Truncate description if too long to fit in the cell width
       const maxWidth = colWidth - 4;
-      while (pdf.getTextWidth(description) > maxWidth && description.length > 0) {
-        description = description.slice(0, -1);
-      }
-      if (description.length < part.description.length) {
-        description = description.trim() + '...';
-      }
+      const lineHeight = 3;
 
-      const descWidth = pdf.getTextWidth(description);
-      const descX = x + (colWidth - descWidth) / 2;
-      pdf.text(description, descX, descY);
+      // Split description into multiple lines if needed
+      const words = part.description.split(' ');
+      const lines: string[] = [];
+      let currentLine = '';
+
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        if (pdf.getTextWidth(testLine) <= maxWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+
+      // Draw each line centered
+      lines.forEach((line, index) => {
+        const lineWidth = pdf.getTextWidth(line);
+        const lineX = x + (colWidth - lineWidth) / 2;
+        pdf.text(line, lineX, descY + (index * lineHeight));
+      });
 
     } catch (error) {
       console.error(`Failed to generate QR code for part ${part.part_id}:`, error);
