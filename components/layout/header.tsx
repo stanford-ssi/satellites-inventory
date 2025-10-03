@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/auth-context';
-import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users } from 'lucide-react';
+import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users, QrCode } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
@@ -60,6 +60,12 @@ export function Header() {
                 <Link href="/dashboard/checkout" className="flex items-center cursor-pointer">
                   <Hammer className="h-4 w-4 mr-2" />
                   Build
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/scanner" className="flex items-center cursor-pointer">
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Scan QR
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

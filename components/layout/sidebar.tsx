@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useSidebar } from '@/lib/contexts/sidebar-context';
-import { Package, ChartBar as BarChart3, History, Settings, Users, X, Hammer, AlertCircle, PackagePlus, UserCircle } from 'lucide-react';
+import { Package, ChartBar as BarChart3, History, Settings, Users, X, Hammer, AlertCircle, PackagePlus, UserCircle, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,11 @@ const navigation = [
     name: 'Build',
     href: '/dashboard/checkout',
     icon: Hammer,
+  },
+  {
+    name: 'Scan QR',
+    href: '/dashboard/scanner',
+    icon: QrCode,
   },
   {
     name: 'My Items',
