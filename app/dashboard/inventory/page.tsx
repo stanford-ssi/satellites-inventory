@@ -169,7 +169,7 @@ export default function InventoryPage() {
                 </td>
                 <td>
                   {item.is_sensitive && !isAdmin ? (
-                    <span className="text-gray-500 italic">Restricted</span>
+                    <span className="clean-badge clean-badge-restricted">RESTRICTED</span>
                   ) : (
                     <div>
                       <div>{item.bin_id}</div>
@@ -185,12 +185,12 @@ export default function InventoryPage() {
                 </td>
                 <td>
                   <div className="flex flex-wrap gap-1">
-                    {item.is_sensitive && (
-                      <span className="clean-badge clean-badge-restricted">
-                        RESTRICTED
+                    {item.quantity === 0 ? (
+                      <span className="clean-badge clean-badge-checkout">
+                        <span className="status-dot status-dot-red"></span>
+                        Out of Stock
                       </span>
-                    )}
-                    {item.quantity <= item.min_quantity ? (
+                    ) : item.quantity <= item.min_quantity ? (
                       <span className="clean-badge clean-badge-lowstock">
                         <span className="status-dot status-dot-yellow"></span>
                         Low Stock
