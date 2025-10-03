@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, TriangleAlert as AlertTriangle, Loader2, FileDown } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useInventory } from '@/lib/hooks/use-inventory';
@@ -23,6 +24,8 @@ export default function InventoryPage() {
   const [addPartModalOpen, setAddPartModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ partId: string; description: string } | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [pdfColumns, setPdfColumns] = useState(3);
+  const [columnModalOpen, setColumnModalOpen] = useState(false);
   const { inventory, loading, error, refetch } = useInventory();
 
   const handleShowQrCode = (partId: string, description: string) => {
@@ -30,15 +33,20 @@ export default function InventoryPage() {
     setQrModalOpen(true);
   };
 
+  const handleOpenColumnModal = () => {
+    setColumnModalOpen(true);
+  };
+
   const handleGenerateBulkQrPdf = async () => {
     try {
+      setColumnModalOpen(false);
       setGeneratingPdf(true);
       const partsForPdf = visibleInventory.map(item => ({
         part_id: item.part_id,
         description: item.description
       }));
 
-      await generateBulkQrPdf(partsForPdf, `qr-codes-${new Date().toISOString().split('T')[0]}.pdf`);
+      await generateBulkQrPdf(partsForPdf, `qr-codes-${new Date().toISOString().split('T')[0]}.pdf`, pdfColumns);
     } catch (error) {
       console.error('Failed to generate PDF:', error);
       alert('Failed to generate PDF. Please try again.');
@@ -108,7 +116,7 @@ export default function InventoryPage() {
             </div>
             <button
               className="github-button github-button-sm"
-              onClick={handleGenerateBulkQrPdf}
+              onClick={handleOpenColumnModal}
               disabled={generatingPdf || visibleInventory.length === 0}
             >
               {generatingPdf ? (
@@ -149,7 +157,7 @@ export default function InventoryPage() {
               <th style={{width: '120px'}}>Location</th>
               <th style={{width: '60px'}} className="text-center">Qty</th>
               <th style={{width: '60px'}} className="text-center">Min</th>
-              <th style={{width: '100px'}}>Status</th>
+              <th style={{width: '120px'}}>Status</th>
               <th style={{width: '80px'}}>Actions</th>
             </tr>
           </thead>
@@ -234,6 +242,66 @@ export default function InventoryPage() {
           </div>
         )}
       </div>
+
+      {/* Column Selection Modal */}
+      <Dialog open={columnModalOpen} onOpenChange={setColumnModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Print QR Codes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                How many columns per page?
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[2, 3, 4, 5].map((col) => (
+                  <button
+                    key={col}
+                    onClick={() => setPdfColumns(col)}
+                    className={`px-4 py-3 text-sm font-medium rounded-md border-2 transition-all ${
+                      pdfColumns === col
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {col}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500">
+              Generating {visibleInventory.length} QR code{visibleInventory.length !== 1 ? 's' : ''} with {pdfColumns} column{pdfColumns !== 1 ? 's' : ''} per page
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setColumnModalOpen(false)}
+              className="text-xs h-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateBulkQrPdf}
+              disabled={generatingPdf}
+              className="text-xs h-8"
+            >
+              {generatingPdf ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-3 w-3 mr-2" />
+                  Generate PDF
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* QR Code Modal */}
       {selectedItem && (
