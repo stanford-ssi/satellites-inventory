@@ -42,16 +42,24 @@ export default function ScannerPage() {
 
           // Navigate to the scanned URL or part
           if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
-            // If it's a full URL from our app, navigate to it
-            const url = new URL(decodedText);
-            if (url.pathname.startsWith('/dashboard/')) {
-              router.push(url.pathname);
-            } else {
-              router.push(decodedText);
+            try {
+              const url = new URL(decodedText);
+              // Check if it's a QR code URL (e.g., /qrcode/PART-123)
+              if (url.pathname.startsWith('/qrcode/')) {
+                const partId = decodeURIComponent(url.pathname.replace('/qrcode/', ''));
+                router.push(`/dashboard/checkout?part=${encodeURIComponent(partId)}`);
+              } else if (url.pathname.startsWith('/dashboard/')) {
+                router.push(url.pathname);
+              } else {
+                router.push(decodedText);
+              }
+            } catch (error) {
+              console.error('Invalid URL:', error);
+              router.push(`/dashboard/checkout?part=${encodeURIComponent(decodedText)}`);
             }
           } else {
-            // Assume it's a part ID or code, try to navigate to it
-            router.push(`/dashboard/parts/${decodedText}`);
+            // Assume it's a part ID or code, navigate to checkout with the part pre-filled
+            router.push(`/dashboard/checkout?part=${encodeURIComponent(decodedText)}`);
           }
         },
         (error) => {

@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Hammer, Package } from 'lucide-react';
+import { Hammer, Package, QrCode } from 'lucide-react';
 
 export default function CheckoutPage() {
   const { profile } = useAuth();
@@ -239,6 +239,14 @@ export default function CheckoutPage() {
             <h1>Check Out / Use Items</h1>
             <p>Check out items to borrow or mark items as used</p>
           </div>
+          <button
+            type="button"
+            className="github-button github-button-sm"
+            onClick={() => router.push('/dashboard/scanner')}
+          >
+            <QrCode className="h-3 w-3 mr-1" />
+            Scan QR
+          </button>
         </div>
       </div>
 
