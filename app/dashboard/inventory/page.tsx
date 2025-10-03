@@ -140,10 +140,10 @@ export default function InventoryPage() {
               <th style={{width: '140px'}}>Part ID</th>
               <th style={{minWidth: '300px'}}>Description</th>
               <th style={{width: '120px'}}>Location</th>
-              <th style={{width: '60px'}} className="text-right">Qty</th>
-              <th style={{width: '60px'}} className="text-right">Min</th>
-              {isAdmin && <th style={{width: '80px'}} className="text-right">Unit Cost</th>}
-              {isAdmin && <th style={{width: '100px'}} className="text-right">Total Value</th>}
+              <th style={{width: '60px'}} className="text-center">Qty</th>
+              <th style={{width: '60px'}} className="text-center">Min</th>
+              {isAdmin && <th style={{width: '80px'}} className="text-center">Unit Cost</th>}
+              {isAdmin && <th style={{width: '100px'}} className="text-center">Total Value</th>}
               <th style={{width: '100px'}}>Status</th>
               <th style={{width: '80px'}}>Actions</th>
             </tr>
@@ -172,19 +172,19 @@ export default function InventoryPage() {
                     </div>
                   )}
                 </td>
-                <td className="text-right">
+                <td className="text-center">
                   {item.quantity}
                 </td>
-                <td className="text-right">
+                <td className="text-center">
                   {item.min_quantity}
                 </td>
                 {isAdmin && (
-                  <td className="text-right">
+                  <td className="text-center">
                     $1.50
                   </td>
                 )}
                 {isAdmin && (
-                  <td className="text-right">
+                  <td className="text-center">
                     ${(item.quantity * 1.5).toFixed(2)}
                   </td>
                 )}

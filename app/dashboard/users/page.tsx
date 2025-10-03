@@ -143,7 +143,7 @@ export default function UsersPage() {
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium text-sm">{user.name}</div>
+                      <div className="font-semibold">{user.name}</div>
                       {user.id === profile?.id && (
                         <div className="text-xs text-gray-500">You</div>
                       )}
@@ -151,7 +151,7 @@ export default function UsersPage() {
                   </div>
                 </td>
                 <td>
-                  <div className="font-mono text-sm">{user.email}</div>
+                  <div>{user.email}</div>
                 </td>
                 <td>
                   <select

@@ -140,7 +140,7 @@ export default function OutstandingPage() {
                   <th style={{width: '140px'}}>Part ID</th>
                   <th style={{minWidth: '300px'}}>Description</th>
                   <th style={{width: '200px'}}>User</th>
-                  <th style={{width: '80px'}} className="text-right">Qty Out</th>
+                  <th style={{width: '80px'}} className="text-center">Qty Out</th>
                   <th style={{width: '150px'}}>Last Checkout</th>
                   <th style={{minWidth: '200px'}}>Notes</th>
                 </tr>
@@ -148,23 +148,23 @@ export default function OutstandingPage() {
               <tbody>
                 {filteredItems.map((item, index) => (
                   <tr key={`${item.part_id}-${item.user_email}-${index}`}>
-                    <td className="font-mono font-medium">
+                    <td className="font-semibold">
                       {item.part_id}
                     </td>
                     <td>
-                      <div className="font-medium">{item.description}</div>
+                      <div>{item.description}</div>
                     </td>
-                    <td className="text-sm">
-                      <div className="font-medium">{item.user_name}</div>
+                    <td>
+                      <div className="font-semibold">{item.user_name}</div>
                       <div className="text-gray-500 text-xs">{item.user_email}</div>
                     </td>
-                    <td className="text-right">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-100 text-orange-700 font-mono font-medium">
+                    <td className="text-center">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-100 text-orange-700 font-medium">
                         <AlertCircle className="h-3 w-3" />
                         {item.total_checked_out}
                       </span>
                     </td>
-                    <td className="text-sm">
+                    <td className="text-xs text-gray-500">
                       {new Date(item.last_checkout_date).toLocaleDateString()}
                     </td>
                     <td className="text-sm text-gray-600">

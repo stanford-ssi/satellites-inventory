@@ -209,7 +209,7 @@ export default function MyItemsPage() {
                   <tr>
                     <th style={{width: '140px'}}>Part ID</th>
                     <th style={{minWidth: '300px'}}>Description</th>
-                    <th style={{width: '100px'}} className="text-right">Qty Out</th>
+                    <th style={{width: '100px'}} className="text-center">Qty Out</th>
                     <th style={{width: '150px'}}>Checked Out</th>
                     <th style={{width: '80px'}} className="text-center">Action</th>
                   </tr>
@@ -217,18 +217,18 @@ export default function MyItemsPage() {
                 <tbody>
                   {myItems.map((item) => (
                     <tr key={item.inventory_id}>
-                      <td className="font-mono font-medium">
+                      <td className="font-semibold">
                         {item.part_id}
                       </td>
                       <td>
-                        <div className="font-medium">{item.description}</div>
+                        <div>{item.description}</div>
                       </td>
-                      <td className="text-right">
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-100 text-orange-700 font-mono font-medium">
+                      <td className="text-center">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-100 text-orange-700 font-medium">
                           {item.quantity_checked_out}
                         </span>
                       </td>
-                      <td className="text-sm">
+                      <td className="text-xs text-gray-500">
                         {new Date(item.last_checkout_date).toLocaleDateString()}
                       </td>
                       <td className="text-center">

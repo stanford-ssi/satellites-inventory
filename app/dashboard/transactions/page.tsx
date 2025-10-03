@@ -107,7 +107,7 @@ export default function TransactionsPage() {
                   <th style={{width: '80px'}}>Type</th>
                   <th style={{width: '140px'}}>Part ID</th>
                   <th style={{minWidth: '300px'}}>Description</th>
-                  <th style={{width: '60px'}} className="text-right">Qty</th>
+                  <th style={{width: '60px'}} className="text-center">Qty</th>
                   <th style={{width: '200px'}}>User</th>
                   <th style={{width: '150px'}}>Date</th>
                   <th style={{minWidth: '200px'}}>Notes</th>
@@ -136,19 +136,19 @@ export default function TransactionsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="font-mono font-medium">
+                    <td className="font-semibold">
                       {transaction.inventory?.part_id || 'N/A'}
                     </td>
                     <td>
-                      <div className="font-medium">{transaction.inventory?.description || 'N/A'}</div>
+                      <div>{transaction.inventory?.description || 'N/A'}</div>
                     </td>
-                    <td className="text-right font-mono">
+                    <td className="text-center">
                       {transaction.quantity}
                     </td>
-                    <td className="text-sm">
+                    <td className="text-xs text-gray-500">
                       {transaction.users?.email || transaction.users?.name || 'Unknown'}
                     </td>
-                    <td className="text-sm">
+                    <td className="text-xs text-gray-500">
                       {new Date(transaction.timestamp).toLocaleDateString()} {new Date(transaction.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </td>
                     <td className="text-sm text-gray-600">
