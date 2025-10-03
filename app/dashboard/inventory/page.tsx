@@ -84,7 +84,7 @@ export default function InventoryPage() {
       <div className="minimal-header">
         <div className="flex justify-between items-start">
           <div>
-            <h1>Inventory Management</h1>
+            <h1>Inventory</h1>
             <p>
               {visibleInventory.length} parts
               {lowStockCount > 0 && (
@@ -145,7 +145,7 @@ export default function InventoryPage() {
           <thead>
             <tr>
               <th style={{width: '140px'}}>Part ID</th>
-              <th style={{minWidth: '300px'}}>Description</th>
+              <th style={{minWidth: '300px'}}>Name</th>
               <th style={{width: '120px'}}>Location</th>
               <th style={{width: '60px'}} className="text-center">Qty</th>
               <th style={{width: '60px'}} className="text-center">Min</th>
