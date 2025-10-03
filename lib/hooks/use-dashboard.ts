@@ -12,6 +12,9 @@ interface DashboardStats {
   totalBoards: number;
   readyBoards: number;
   totalBuilds: number;
+  newPartsThisWeek: number;
+  newUsersThisWeek: number;
+  transactionGrowth: number;
 }
 
 interface RecentActivity {
@@ -35,7 +38,10 @@ export function useDashboard() {
     recentTransactions: 0,
     totalBoards: 0,
     readyBoards: 0,
-    totalBuilds: 0
+    totalBuilds: 0,
+    newPartsThisWeek: 0,
+    newUsersThisWeek: 0,
+    transactionGrowth: 0
   });
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -193,6 +199,43 @@ export function useDashboard() {
           timestamp: formatTimeAgo(item.rawTimestamp)
         }));
 
+      // Calculate date ranges for trends
+      const now = new Date();
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+      // Get new parts this week
+      const { count: newPartsCount } = await supabase
+        .from('inventory')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', oneWeekAgo.toISOString());
+
+      // Get new users this week (admin only)
+      let newUsersCount = 0;
+      if (isAdmin) {
+        const { count } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', oneWeekAgo.toISOString());
+        newUsersCount = count || 0;
+      }
+
+      // Calculate transaction growth
+      const { count: thisWeekTransactions } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .gte('timestamp', oneWeekAgo.toISOString());
+
+      const { count: lastWeekTransactions } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .gte('timestamp', twoWeeksAgo.toISOString())
+        .lt('timestamp', oneWeekAgo.toISOString());
+
+      const transactionGrowth = lastWeekTransactions && lastWeekTransactions > 0
+        ? Math.round(((thisWeekTransactions || 0) - lastWeekTransactions) / lastWeekTransactions * 100)
+        : 0;
+
       // Calculate stats
       const totalParts = inventory?.length || 0;
       const lowStockItems = inventory?.filter(item => item.quantity <= item.min_quantity).length || 0;
@@ -204,7 +247,10 @@ export function useDashboard() {
         recentTransactions: transactions.length + builds.length,
         totalBoards: boards.length,
         readyBoards,
-        totalBuilds: buildsCount
+        totalBuilds: buildsCount,
+        newPartsThisWeek: newPartsCount || 0,
+        newUsersThisWeek: newUsersCount,
+        transactionGrowth
       });
 
       setRecentActivity(allActivity);

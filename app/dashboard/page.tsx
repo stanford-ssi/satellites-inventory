@@ -19,8 +19,8 @@ export default function DashboardPage() {
       value: stats.totalParts.toString(),
       description: `${stats.lowStockItems} need restocking`,
       icon: Package,
-      trend: '+2 this week',
-      trendUp: true,
+      trend: stats.newPartsThisWeek > 0 ? `+${stats.newPartsThisWeek} this week` : 'No new parts',
+      trendUp: stats.newPartsThisWeek > 0,
     },
     {
       title: 'Board Designs',
@@ -35,16 +35,16 @@ export default function DashboardPage() {
       value: stats.recentTransactions.toString(),
       description: 'Transactions this week',
       icon: TrendingUp,
-      trend: '+18%',
-      trendUp: true,
+      trend: stats.transactionGrowth !== 0 ? `${stats.transactionGrowth > 0 ? '+' : ''}${stats.transactionGrowth}%` : 'No change',
+      trendUp: stats.transactionGrowth > 0,
     },
     {
       title: 'Active Users',
       value: isAdmin ? stats.totalUsers.toString() : '—',
       description: isAdmin ? 'Registered accounts' : 'Admin only',
       icon: Users,
-      trend: '+2 new',
-      trendUp: true,
+      trend: isAdmin ? (stats.newUsersThisWeek > 0 ? `+${stats.newUsersThisWeek} new` : 'No new users') : '—',
+      trendUp: stats.newUsersThisWeek > 0,
     },
   ];
 
@@ -186,14 +186,22 @@ export default function DashboardPage() {
                     <div className="text-xs text-gray-500">Check out or return parts</div>
                   </div>
                 </Button>
-                <Button variant="outline" className="justify-start h-auto p-2">
+                <Button
+                  variant="outline"
+                  className="justify-start h-auto p-2"
+                  onClick={() => router.push('/dashboard/inventory')}
+                >
                   <Package className="h-4 w-4 mr-2" />
                   <div className="text-left">
                     <div className="font-medium text-xs">Browse Inventory</div>
                     <div className="text-xs text-gray-500">Search and view parts catalog</div>
                   </div>
                 </Button>
-                <Button variant="outline" className="justify-start h-auto p-2">
+                <Button
+                  variant="outline"
+                  className="justify-start h-auto p-2"
+                  onClick={() => router.push('/dashboard/boards')}
+                >
                   <Hammer className="h-4 w-4 mr-2" />
                   <div className="text-left">
                     <div className="font-medium text-xs">Build Boards</div>
@@ -207,14 +215,22 @@ export default function DashboardPage() {
               <div className="space-y-2 mt-3">
                 <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide">Admin Functions</h4>
                 <div className="grid gap-2">
-                  <Button variant="outline" className="justify-start h-auto p-2">
+                  <Button
+                    variant="outline"
+                    className="justify-start h-auto p-2"
+                    onClick={() => router.push('/dashboard/inventory')}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     <div className="text-left">
                       <div className="font-medium text-xs">Add New Parts</div>
                       <div className="text-xs text-gray-500">Create inventory entries</div>
                     </div>
                   </Button>
-                  <Button variant="outline" className="justify-start h-auto p-2">
+                  <Button
+                    variant="outline"
+                    className="justify-start h-auto p-2"
+                    onClick={() => router.push('/dashboard/users')}
+                  >
                     <Users className="h-4 w-4 mr-2" />
                     <div className="text-left">
                       <div className="font-medium text-xs">Manage Users</div>
