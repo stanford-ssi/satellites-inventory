@@ -35,6 +35,8 @@ export interface Database {
           id: string;
           part_id: string;
           description: string;
+          value: string | null;
+          footprint: string | null;
           bin_id: string | null;
           location_within_bin: string | null;
           quantity: number;
@@ -49,6 +51,8 @@ export interface Database {
           id?: string;
           part_id: string;
           description: string;
+          value?: string | null;
+          footprint?: string | null;
           bin_id?: string | null;
           location_within_bin?: string | null;
           quantity?: number;
@@ -63,6 +67,8 @@ export interface Database {
           id?: string;
           part_id?: string;
           description?: string;
+          value?: string | null;
+          footprint?: string | null;
           bin_id?: string | null;
           location_within_bin?: string | null;
           quantity?: number;
@@ -110,6 +116,7 @@ export interface Database {
           description: string | null;
           version: string;
           created_by: string | null;
+          assembled_part_id: string | null;
           created_at: string;
           updated_at: string;
           is_active: boolean;
@@ -120,6 +127,7 @@ export interface Database {
           description?: string | null;
           version?: string;
           created_by?: string | null;
+          assembled_part_id?: string | null;
           created_at?: string;
           updated_at?: string;
           is_active?: boolean;
@@ -130,6 +138,7 @@ export interface Database {
           description?: string | null;
           version?: string;
           created_by?: string | null;
+          assembled_part_id?: string | null;
           created_at?: string;
           updated_at?: string;
           is_active?: boolean;

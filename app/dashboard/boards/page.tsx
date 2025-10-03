@@ -7,6 +7,8 @@ import { Hammer, Search, Plus, Package, Wrench, AlertTriangle, Clock, Users } fr
 import { useAuth } from '@/lib/auth/auth-context';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { BoardBuildModal } from '@/components/boards/board-build-modal';
+import { NewBoardModal } from '@/components/boards/new-board-modal';
 
 interface Board {
   id: string;
@@ -40,7 +42,9 @@ export default function BoardsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [boards, setBoards] = useState<BoardWithParts[]>([]);
   const [loading, setLoading] = useState(true);
-  const [buildingBoard, setBuildingBoard] = useState<string | null>(null);
+  const [selectedBoard, setSelectedBoard] = useState<BoardWithParts | null>(null);
+  const [buildModalOpen, setBuildModalOpen] = useState(false);
+  const [newBoardModalOpen, setNewBoardModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBoards();
@@ -97,32 +101,6 @@ export default function BoardsPage() {
     board.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleBuildBoard = async (boardId: string, quantity: number = 1) => {
-    setBuildingBoard(boardId);
-    try {
-      const { data, error } = await supabase.rpc('build_board', {
-        board_id_param: boardId,
-        quantity_param: quantity,
-        notes_param: `Built via dashboard by ${profile?.name}`
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        alert(`Board built successfully! Build ID: ${data.build_id}`);
-        // Refresh boards to update inventory counts
-        fetchBoards();
-      } else {
-        alert(`Build failed: ${data?.error}\n\nInsufficient parts: ${data?.insufficient_parts?.join(', ')}`);
-      }
-    } catch (error) {
-      console.error('Error building board:', error);
-      alert('Error building board. Please try again.');
-    } finally {
-      setBuildingBoard(null);
-    }
-  };
-
   const canBuildBoard = (board: BoardWithParts) => {
     return board.board_parts.every(bp =>
       bp.inventory.quantity >= bp.quantity_required
@@ -163,7 +141,10 @@ export default function BoardsPage() {
               />
             </div>
             {isAdmin && (
-              <button className="github-button github-button-primary github-button-sm">
+              <button
+                className="github-button github-button-primary github-button-sm"
+                onClick={() => setNewBoardModalOpen(true)}
+              >
                 <Plus className="h-4 w-4 mr-1" />
                 New Board
               </button>
@@ -172,98 +153,55 @@ export default function BoardsPage() {
         </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {filteredBoards.map((board) => {
           const canBuild = canBuildBoard(board);
           const missingParts = board.board_parts.filter(bp => bp.inventory.quantity < bp.quantity_required);
 
           return (
-            <div key={board.id} className="dashboard-card">
+            <div
+              key={board.id}
+              className="dashboard-card cursor-pointer hover:border-blue-300 transition-colors"
+              onClick={() => {
+                setSelectedBoard(board);
+                setBuildModalOpen(true);
+              }}
+            >
               <div className="dashboard-card-header">
                 <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-gray-500" />
+                  <Wrench className="h-4 w-4 text-gray-500" />
                   <div className="dashboard-card-title">{board.name}</div>
-                  <Badge variant="outline" className="text-xs">
-                    v{board.version}
-                  </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  {canBuild ? (
-                    <span className="clean-badge clean-badge-active">Ready</span>
-                  ) : (
-                    <span className="clean-badge clean-badge-lowstock">Missing Parts</span>
-                  )}
-                  <button
-                    className={`github-button github-button-sm ${canBuild ? 'github-button-primary' : ''}`}
-                    onClick={() => handleBuildBoard(board.id)}
-                    disabled={!canBuild || buildingBoard === board.id}
-                  >
-                    <Hammer className="h-3 w-3 mr-1" />
-                    {buildingBoard === board.id ? 'Building...' : 'Build Board'}
-                  </button>
-                </div>
+                {canBuild ? (
+                  <span className="clean-badge clean-badge-active">Ready</span>
+                ) : (
+                  <span className="clean-badge clean-badge-lowstock">Missing Parts</span>
+                )}
               </div>
 
               {board.description && (
-                <div className="dashboard-card-description mb-3">{board.description}</div>
+                <div className="text-xs text-gray-600 mb-3">{board.description}</div>
               )}
 
-              <div className="grid gap-3 md:grid-cols-2">
-                {/* BOM (Bill of Materials) */}
-                <div>
-                  <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide mb-2">
-                    Bill of Materials ({board.board_parts.length} parts)
-                  </h4>
-                  <div className="space-y-2">
-                    {board.board_parts.map((bp) => (
-                      <div key={bp.id} className="flex items-center justify-between text-xs p-2 border border-gray-200 rounded">
-                        <div className="flex-1">
-                          <div className="font-medium">{bp.inventory.part_id}</div>
-                          <div className="text-gray-500">{bp.inventory.description}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium">Need: {bp.quantity_required}</div>
-                          <div className={`text-xs ${bp.inventory.quantity >= bp.quantity_required ? 'text-green-600' : 'text-red-600'}`}>
-                            Have: {bp.inventory.quantity}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600">Version:</span>
+                  <span className="font-medium">v{board.version}</span>
                 </div>
-
-                {/* Board Info & Status */}
-                <div>
-                  <h4 className="font-semibold text-xs text-gray-600 uppercase tracking-wide mb-2">
-                    Board Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span>Total Builds:</span>
-                      <span className="font-medium">{board.builds_count || 0}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span>Created:</span>
-                      <span>{new Date(board.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span>Last Updated:</span>
-                      <span>{new Date(board.updated_at).toLocaleDateString()}</span>
-                    </div>
-
-                    {missingParts.length > 0 && (
-                      <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded">
-                        <div className="flex items-center gap-1 mb-1">
-                          <AlertTriangle className="h-3 w-3 text-orange-600" />
-                          <span className="text-xs font-medium text-orange-800">Missing Parts:</span>
-                        </div>
-                        <div className="text-xs text-orange-700">
-                          {missingParts.map(mp => mp.inventory.part_id).join(', ')}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600">BOM Parts:</span>
+                  <span className="font-medium">{board.board_parts.length} parts</span>
                 </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600">Total Builds:</span>
+                  <span className="font-medium">{board.builds_count || 0}</span>
+                </div>
+                {missingParts.length > 0 && (
+                  <div className="flex items-center gap-1 text-xs text-orange-600">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>{missingParts.length} part{missingParts.length !== 1 ? 's' : ''} missing</span>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -318,6 +256,31 @@ export default function BoardsPage() {
           <div className="stat-card-description">Need restocking</div>
         </div>
       </div>
+
+      {/* Board Build Modal */}
+      <BoardBuildModal
+        isOpen={buildModalOpen}
+        onClose={() => {
+          setBuildModalOpen(false);
+          setSelectedBoard(null);
+        }}
+        board={selectedBoard}
+        onSuccess={() => {
+          fetchBoards();
+        }}
+        userName={profile?.name}
+        isAdmin={isAdmin}
+      />
+
+      {/* New Board Modal */}
+      <NewBoardModal
+        isOpen={newBoardModalOpen}
+        onClose={() => setNewBoardModalOpen(false)}
+        onSuccess={() => {
+          fetchBoards();
+        }}
+        userId={profile?.id}
+      />
     </div>
   );
 }
