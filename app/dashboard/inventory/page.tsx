@@ -343,6 +343,7 @@ export default function InventoryPage() {
         onClose={() => setEditModalOpen(false)}
         onSuccess={() => refetch()}
         part={editingPart}
+        isAdmin={isAdmin}
       />
     </div>
   );

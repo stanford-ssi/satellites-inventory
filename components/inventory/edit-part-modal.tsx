@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/lib/supabase/client';
-import { Package, MapPin } from 'lucide-react';
+import { Package, MapPin, Trash2 } from 'lucide-react';
 
 interface InventoryItem {
   id: string;
@@ -25,9 +25,10 @@ interface EditPartModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   part: InventoryItem | null;
+  isAdmin?: boolean;
 }
 
-export function EditPartModal({ isOpen, onClose, onSuccess, part }: EditPartModalProps) {
+export function EditPartModal({ isOpen, onClose, onSuccess, part, isAdmin }: EditPartModalProps) {
   const [description, setDescription] = useState('');
   const [binId, setBinId] = useState('');
   const [locationWithinBin, setLocationWithinBin] = useState('');
@@ -37,6 +38,7 @@ export function EditPartModal({ isOpen, onClose, onSuccess, part }: EditPartModa
   const [isSensitive, setIsSensitive] = useState<string>('false');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
   // Pre-populate form when modal opens or part changes
@@ -107,6 +109,43 @@ export function EditPartModal({ isOpen, onClose, onSuccess, part }: EditPartModa
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!part) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${part.part_id}"?\n\nThis action CANNOT be undone. All transaction history for this part will also be deleted.`
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    setError('');
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('inventory')
+        .delete()
+        .eq('id', part.id);
+
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        setError(`Failed to delete part: ${deleteError.message}`);
+        setIsDeleting(false);
+        return;
+      }
+
+      // Success
+      resetForm();
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete part:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -252,13 +291,25 @@ export function EditPartModal({ isOpen, onClose, onSuccess, part }: EditPartModa
 
           {/* Submit Buttons */}
           <div className="flex gap-2 pt-2">
-            <Button
-              type="submit"
-              disabled={!isValid || isSubmitting}
-              className="flex-1 h-8 text-xs"
-            >
-              {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
-            </Button>
+            {isAdmin && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting || isSubmitting}
+                className="h-8 text-xs"
+              >
+                {isDeleting ? (
+                  'Deleting...'
+                ) : (
+                  <>
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Delete Part
+                  </>
+                )}
+              </Button>
+            )}
+            <div className="flex-1" />
             <Button
               type="button"
               variant="outline"
@@ -266,6 +317,13 @@ export function EditPartModal({ isOpen, onClose, onSuccess, part }: EditPartModa
               className="h-8 text-xs"
             >
               Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={!isValid || isSubmitting}
+              className="h-8 text-xs"
+            >
+              {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
             </Button>
           </div>
         </form>
