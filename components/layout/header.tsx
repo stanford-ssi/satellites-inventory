@@ -66,6 +66,12 @@ export function Header() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href="/dashboard/boards" className="flex items-center cursor-pointer">
+                  <Hammer className="h-4 w-4 mr-2" />
+                  Boards
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href="/dashboard/scanner" className="flex items-center cursor-pointer">
                   <QrCode className="h-4 w-4 mr-2" />
                   Scan QR

@@ -34,6 +34,7 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
   const [step, setStep] = useState<'upload' | 'edit'>('upload');
   const [boardName, setBoardName] = useState('');
   const [boardVersion, setBoardVersion] = useState('1.0');
+  const [boardPartNumber, setBoardPartNumber] = useState('');
   const [boardDescription, setBoardDescription] = useState('');
   const [bomRows, setBomRows] = useState<BOMRow[]>([]);
   const [creating, setCreating] = useState(false);
@@ -67,28 +68,54 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
         }));
 
         // Try to auto-match existing inventory parts
-        const matchedRows = await Promise.all(
-          parsedRows.map(async (row) => {
-            // Search inventory by value or footprint
-            const { data: matches } = await supabase
-              .from('inventory')
-              .select('part_id, description, value, footprint')
-              .or(`value.eq.${row.value},footprint.eq.${row.footprint}`)
-              .limit(1);
+        try {
+          const matchedRows = await Promise.all(
+            parsedRows.map(async (row) => {
+              // Skip matching if both value and footprint are empty
+              if (!row.value && !row.footprint) {
+                return row;
+              }
 
-            if (matches && matches.length > 0) {
-              return {
-                ...row,
-                partId: matches[0].part_id,
-                partName: matches[0].description
-              };
-            }
-            return row;
-          })
-        );
+              try {
+                // Search inventory by value or footprint
+                let query = supabase
+                  .from('inventory')
+                  .select('part_id, description, value, footprint')
+                  .limit(1);
 
-        setBomRows(matchedRows);
-        setStep('edit');
+                // Build OR condition only for non-empty values
+                const conditions = [];
+                if (row.value) conditions.push(`value.eq.${row.value}`);
+                if (row.footprint) conditions.push(`footprint.eq.${row.footprint}`);
+
+                if (conditions.length > 0) {
+                  query = query.or(conditions.join(','));
+                  const { data: matches } = await query;
+
+                  if (matches && matches.length > 0) {
+                    return {
+                      ...row,
+                      partId: matches[0].part_id,
+                      partName: matches[0].description
+                    };
+                  }
+                }
+              } catch (err) {
+                console.error('Error matching row:', err);
+              }
+
+              return row;
+            })
+          );
+
+          setBomRows(matchedRows);
+          setStep('edit');
+        } catch (err) {
+          console.error('Error during auto-match:', err);
+          // Still proceed to edit even if auto-match fails
+          setBomRows(parsedRows);
+          setStep('edit');
+        }
       },
       error: (err) => {
         setError(`Failed to parse CSV: ${err.message}`);
@@ -99,6 +126,28 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
   const updateRow = (index: number, field: keyof BOMRow, value: any) => {
     const newRows = [...bomRows];
     newRows[index] = { ...newRows[index], [field]: value };
+    setBomRows(newRows);
+  };
+
+  const addRow = () => {
+    const newRow: BOMRow = {
+      references: '',
+      value: '',
+      footprint: '',
+      quantity: 1,
+      partId: '',
+      partName: '',
+      binId: '',
+      locationWithinBin: '',
+      minQuantity: 5,
+      isSensitive: false,
+      partLink: ''
+    };
+    setBomRows([...bomRows, newRow]);
+  };
+
+  const deleteRow = (index: number) => {
+    const newRows = bomRows.filter((_, i) => i !== index);
     setBomRows(newRows);
   };
 
@@ -179,6 +228,7 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
           name: boardName,
           description: boardDescription || null,
           version: boardVersion,
+          part_number: boardPartNumber || null,
           created_by: userId
         })
         .select('id')
@@ -226,6 +276,7 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
     setStep('upload');
     setBoardName('');
     setBoardVersion('1.0');
+    setBoardPartNumber('');
     setBoardDescription('');
     setBomRows([]);
     setError('');
@@ -264,15 +315,29 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
                 />
               </div>
               <div>
-                <Label htmlFor="board-desc">Description (optional)</Label>
+                <Label htmlFor="board-part-number">Board Internal Part Number</Label>
                 <Input
-                  id="board-desc"
-                  value={boardDescription}
-                  onChange={(e) => setBoardDescription(e.target.value)}
-                  placeholder="Board description"
-                  className="mt-1"
+                  id="board-part-number"
+                  value={boardPartNumber}
+                  onChange={(e) => setBoardPartNumber(e.target.value)}
+                  placeholder="e.g., "
+                  className="mt-1 font-mono"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  The part # for the finished board - will be added to inventory when built
+                </p>
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="board-desc">Description (optional)</Label>
+              <Input
+                id="board-desc"
+                value={boardDescription}
+                onChange={(e) => setBoardDescription(e.target.value)}
+                placeholder="Board description"
+                className="mt-1"
+              />
             </div>
 
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -324,15 +389,45 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
                     <th className="px-2 py-2 text-left">Bin</th>
                     <th className="px-2 py-2 text-left">Location</th>
                     <th className="px-2 py-2 text-left">Min Qty</th>
+                    <th className="px-2 py-2 text-left w-12"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {bomRows.map((row, index) => (
                     <tr key={index} className="border-t hover:bg-gray-50">
-                      <td className="px-2 py-2 text-gray-600">{row.references}</td>
-                      <td className="px-2 py-2 text-gray-600">{row.value}</td>
-                      <td className="px-2 py-2 text-gray-600 truncate max-w-[150px]" title={row.footprint}>{row.footprint}</td>
-                      <td className="px-2 py-2 text-gray-600">{row.quantity}</td>
+                      <td className="px-2 py-2">
+                        <Input
+                          value={row.references}
+                          onChange={(e) => updateRow(index, 'references', e.target.value)}
+                          className="h-7 text-xs"
+                          placeholder="C1,C2"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          value={row.value}
+                          onChange={(e) => updateRow(index, 'value', e.target.value)}
+                          className="h-7 text-xs"
+                          placeholder="100uF"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          value={row.footprint}
+                          onChange={(e) => updateRow(index, 'footprint', e.target.value)}
+                          className="h-7 text-xs"
+                          placeholder="0805"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          type="number"
+                          value={row.quantity}
+                          onChange={(e) => updateRow(index, 'quantity', parseInt(e.target.value) || 0)}
+                          className="h-7 text-xs w-16"
+                          min={1}
+                        />
+                      </td>
                       <td className="px-2 py-2">
                         <Input
                           value={row.partId}
@@ -369,15 +464,37 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
                         <Input
                           type="number"
                           value={row.minQuantity}
-                          onChange={(e) => updateRow(index, 'minQuantity', parseInt(e.target.value))}
+                          onChange={(e) => updateRow(index, 'minQuantity', parseInt(e.target.value) || 0)}
                           className="h-7 text-xs w-16"
                         />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteRow(index)}
+                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addRow}
+              className="mt-2"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Row
+            </Button>
 
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded flex items-start gap-2">

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useSidebar } from '@/lib/contexts/sidebar-context';
-import { Package, ChartBar as BarChart3, History, Settings, Users, X, ShoppingBag, AlertCircle, PackagePlus, UserCircle, QrCode } from 'lucide-react';
+import { Package, ChartBar as BarChart3, History, Settings, Users, X, ShoppingBag, AlertCircle, PackagePlus, UserCircle, QrCode, Hammer } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,11 @@ const buildNavigation = [
     name: 'Use Parts',
     href: '/dashboard/checkout',
     icon: ShoppingBag,
+  },
+  {
+    name: 'Boards',
+    href: '/dashboard/boards',
+    icon: Hammer,
   },
   {
     name: 'Scan QR',

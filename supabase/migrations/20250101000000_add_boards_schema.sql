@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS boards (
   name TEXT NOT NULL,
   description TEXT,
   version TEXT DEFAULT '1.0',
+  part_number TEXT UNIQUE,
   created_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -26,7 +27,7 @@ CREATE TABLE IF NOT EXISTS board_parts (
 -- Board builds - tracks when boards are actually made
 CREATE TABLE IF NOT EXISTS board_builds (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  board_id UUID REFERENCES boards(id),
+  board_id UUID REFERENCES boards(id) ON DELETE CASCADE,
   built_by UUID REFERENCES users(id),
   quantity_built INTEGER NOT NULL DEFAULT 1 CHECK (quantity_built > 0),
   notes TEXT,
@@ -101,8 +102,15 @@ DECLARE
   missing_parts TEXT[] := '{}';
   insufficient_parts TEXT[] := '{}';
   build_id UUID;
-  user_id UUID := auth.uid();
+  user_id UUID;
 BEGIN
+  -- Get the user's ID from the users table based on auth_id
+  SELECT id INTO user_id FROM users WHERE auth_id = auth.uid();
+
+  IF user_id IS NULL THEN
+    RETURN json_build_object('success', false, 'error', 'User not found');
+  END IF;
+
   -- Check if board exists
   SELECT * INTO board_record FROM boards WHERE id = board_id_param AND is_active = true;
   IF NOT FOUND THEN
@@ -138,10 +146,71 @@ BEGIN
     FROM board_parts bp
     WHERE bp.board_id = board_id_param
   LOOP
+    -- Deduct from inventory
     UPDATE inventory
     SET quantity = quantity - (part_record.quantity_required * quantity_param)
     WHERE id = part_record.part_id;
+
+    -- Record transaction for each consumed part
+    INSERT INTO transactions (part_id, user_id, type, quantity, notes)
+    VALUES (
+      part_record.part_id,
+      user_id,
+      'adjustment',
+      -(part_record.quantity_required * quantity_param),
+      'Consumed for board build: ' || board_record.name || ' v' || board_record.version
+    );
   END LOOP;
+
+  -- Create or increment the board itself in inventory (if part_number is set)
+  IF board_record.part_number IS NOT NULL THEN
+    -- Check if board exists in inventory
+    DECLARE
+      board_inventory_id UUID;
+    BEGIN
+      SELECT id INTO board_inventory_id
+      FROM inventory
+      WHERE part_id = board_record.part_number;
+
+      IF board_inventory_id IS NOT NULL THEN
+        -- Board exists, increment quantity
+        UPDATE inventory
+        SET quantity = quantity + quantity_param
+        WHERE id = board_inventory_id;
+
+        -- Record transaction for board creation
+        INSERT INTO transactions (part_id, user_id, type, quantity, notes)
+        VALUES (
+          board_inventory_id,
+          user_id,
+          'adjustment',
+          quantity_param,
+          'Board manufactured: ' || board_record.name || ' v' || board_record.version
+        );
+      ELSE
+        -- Board doesn't exist in inventory, create it
+        INSERT INTO inventory (part_id, description, quantity, location, category)
+        VALUES (
+          board_record.part_number,
+          board_record.name || ' v' || board_record.version,
+          quantity_param,
+          'MANUFACTURED',
+          'Boards'
+        )
+        RETURNING id INTO board_inventory_id;
+
+        -- Record transaction for initial board creation
+        INSERT INTO transactions (part_id, user_id, type, quantity, notes)
+        VALUES (
+          board_inventory_id,
+          user_id,
+          'adjustment',
+          quantity_param,
+          'Initial board manufactured: ' || board_record.name || ' v' || board_record.version
+        );
+      END IF;
+    END;
+  END IF;
 
   -- Record the build
   INSERT INTO board_builds (board_id, built_by, quantity_built, notes)
