@@ -364,14 +364,8 @@ export default function CheckoutPage() {
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="Enter your name or email"
                   required
-                  disabled={!!profile?.email}
                   className="github-input text-xs h-8"
                 />
-                {profile?.email && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Using logged-in account
-                  </p>
-                )}
               </div>
 
               {/* Notes */}

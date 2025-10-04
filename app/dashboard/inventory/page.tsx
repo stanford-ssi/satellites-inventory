@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, TriangleAlert as AlertTriangle, Loader2, FileDown } from 'lucide-react';
+import { Plus, Search, Package, ExternalLink, QrCode, CreditCard as Edit, TriangleAlert as AlertTriangle, Loader2, FileDown, ShoppingBag, PackagePlus } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useInventory } from '@/lib/hooks/use-inventory';
 import { QrCodeModal } from '@/components/inventory/qr-code-modal';
 import { AddPartModal } from '@/components/inventory/add-part-modal';
 import { EditPartModal } from '@/components/inventory/edit-part-modal';
+import { UsePartsModal } from '@/components/inventory/use-parts-modal';
+import { RestockModal } from '@/components/inventory/restock-modal';
 import { useState } from 'react';
 import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
 import { useRouter } from 'next/navigation';
@@ -25,6 +27,10 @@ export default function InventoryPage() {
   const [addPartModalOpen, setAddPartModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ partId: string; description: string } | null>(null);
   const [editingPart, setEditingPart] = useState<any>(null);
+  const [usePartsModalOpen, setUsePartsModalOpen] = useState(false);
+  const [restockModalOpen, setRestockModalOpen] = useState(false);
+  const [selectedPartForUse, setSelectedPartForUse] = useState<string>('');
+  const [selectedPartForRestock, setSelectedPartForRestock] = useState<string>('');
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfColumns, setPdfColumns] = useState(3);
   const [columnModalOpen, setColumnModalOpen] = useState(false);
@@ -39,6 +45,16 @@ export default function InventoryPage() {
   const handleEditPart = (part: any) => {
     setEditingPart(part);
     setEditModalOpen(true);
+  };
+
+  const handleUsePart = (partId: string) => {
+    setSelectedPartForUse(partId);
+    setUsePartsModalOpen(true);
+  };
+
+  const handleRestockPart = (partId: string) => {
+    setSelectedPartForRestock(partId);
+    setRestockModalOpen(true);
   };
 
   const handleOpenColumnModal = () => {
@@ -223,6 +239,22 @@ export default function InventoryPage() {
                   <div className="flex items-center gap-1">
                     <button
                       className="github-button github-button-sm"
+                      onClick={() => handleUsePart(item.part_id)}
+                      title="Use Part"
+                    >
+                      <ShoppingBag className="h-3 w-3" />
+                    </button>
+                    {isAdmin && (
+                      <button
+                        className="github-button github-button-sm"
+                        onClick={() => handleRestockPart(item.part_id)}
+                        title="Restock Part"
+                      >
+                        <PackagePlus className="h-3 w-3" />
+                      </button>
+                    )}
+                    <button
+                      className="github-button github-button-sm"
                       onClick={() => handleShowQrCode(item.part_id, item.description)}
                       title="Show QR Code"
                     >
@@ -344,6 +376,24 @@ export default function InventoryPage() {
         onSuccess={() => refetch()}
         part={editingPart}
         isAdmin={isAdmin}
+      />
+
+      {/* Use Parts Modal */}
+      <UsePartsModal
+        isOpen={usePartsModalOpen}
+        onClose={() => setUsePartsModalOpen(false)}
+        onSuccess={() => refetch()}
+        partId={selectedPartForUse}
+        userEmail={profile?.email}
+      />
+
+      {/* Restock Modal */}
+      <RestockModal
+        isOpen={restockModalOpen}
+        onClose={() => setRestockModalOpen(false)}
+        onSuccess={() => refetch()}
+        partId={selectedPartForRestock}
+        userId={profile?.id}
       />
     </div>
   );
