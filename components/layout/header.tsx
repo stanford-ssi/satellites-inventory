@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/auth-context';
-import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users } from 'lucide-react';
+import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users, ShoppingBag, QrCode } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
@@ -56,12 +56,24 @@ export function Header() {
                   Inventory
                 </Link>
               </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Build</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/checkout" className="flex items-center cursor-pointer">
-                  <Hammer className="h-4 w-4 mr-2" />
-                  Build
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Use Parts
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/scanner" className="flex items-center cursor-pointer">
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Scan QR
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Profile</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/my-items" className="flex items-center cursor-pointer">
                   <UserCircle className="h-4 w-4 mr-2" />
@@ -71,13 +83,14 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/profile" className="flex items-center cursor-pointer">
                   <Settings className="h-4 w-4 mr-2" />
-                  Settings
+                  Profile
                 </Link>
               </DropdownMenuItem>
+
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">Admin</DropdownMenuLabel>
+                  <DropdownMenuLabel>Admin</DropdownMenuLabel>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/outstanding" className="flex items-center cursor-pointer">
                       <AlertCircle className="h-4 w-4 mr-2" />
