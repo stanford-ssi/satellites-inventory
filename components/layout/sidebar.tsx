@@ -48,7 +48,7 @@ const profileNavigation = [
   },
   {
     name: 'Profile',
-    href: '/dashboard/profile',
+    href: '/dashboard/settings',
     icon: Settings,
   },
 ];
