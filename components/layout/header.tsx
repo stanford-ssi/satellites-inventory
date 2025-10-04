@@ -141,7 +141,7 @@ export function Header() {
 
         <nav className="flex items-center space-x-2">
           {user && profile && (
-            <Link href="/dashboard/profile">
+            <Link href="/dashboard/settings">
               <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs font-medium">
