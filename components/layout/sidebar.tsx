@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useSidebar } from '@/lib/contexts/sidebar-context';
-import { Package, ChartBar as BarChart3, History, Settings, Users, X, ShoppingBag, AlertCircle, PackagePlus, UserCircle, QrCode, Hammer } from 'lucide-react';
+import { Package, ChartBar as BarChart3, History, Settings, Users, X, AlertCircle, UserCircle, QrCode, Hammer } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -23,11 +23,6 @@ const navigation = [
 ];
 
 const buildNavigation = [
-  {
-    name: 'Use Parts',
-    href: '/dashboard/checkout',
-    icon: ShoppingBag,
-  },
   {
     name: 'Boards',
     href: '/dashboard/boards',
@@ -58,11 +53,6 @@ const adminNavigation = [
     name: 'Items Out',
     href: '/dashboard/outstanding',
     icon: AlertCircle,
-  },
-  {
-    name: 'Restock',
-    href: '/dashboard/restock',
-    icon: PackagePlus,
   },
   {
     name: 'History',

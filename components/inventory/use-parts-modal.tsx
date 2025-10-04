@@ -206,7 +206,7 @@ export function UsePartsModal({ isOpen, onClose, onSuccess, partId: initialPartI
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Use Parts</DialogTitle>
+          <DialogTitle>Checkout / Consume Parts</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

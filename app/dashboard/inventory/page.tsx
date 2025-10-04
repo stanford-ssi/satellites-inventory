@@ -14,14 +14,15 @@ import { AddPartModal } from '@/components/inventory/add-part-modal';
 import { EditPartModal } from '@/components/inventory/edit-part-modal';
 import { UsePartsModal } from '@/components/inventory/use-parts-modal';
 import { RestockModal } from '@/components/inventory/restock-modal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function InventoryPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [addPartModalOpen, setAddPartModalOpen] = useState(false);
@@ -36,6 +37,17 @@ export default function InventoryPage() {
   const [columnModalOpen, setColumnModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const { inventory, loading, error, refetch } = useInventory();
+
+  // Handle QR code redirect with part query parameter
+  useEffect(() => {
+    const partParam = searchParams.get('part');
+    if (partParam && !loading) {
+      setSelectedPartForUse(partParam);
+      setUsePartsModalOpen(true);
+      // Clear the query parameter after opening modal
+      router.replace('/dashboard/inventory', { scroll: false });
+    }
+  }, [searchParams, loading, router]);
 
   const handleShowQrCode = (partId: string, description: string) => {
     setSelectedItem({ partId, description });
@@ -159,13 +171,6 @@ export default function InventoryPage() {
                   <Plus className="h-4 w-4 mr-1" />
                   Add New Part
                 </button>
-                <button
-                  className="github-button github-button-primary github-button-sm"
-                  onClick={() => router.push('/dashboard/restock')}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Restock
-                </button>
               </>
             )}
           </div>
@@ -176,13 +181,13 @@ export default function InventoryPage() {
         <table className="github-table">
           <thead>
             <tr>
-              <th style={{width: '140px'}}>Part ID</th>
-              <th style={{minWidth: '300px'}}>Name</th>
-              <th style={{width: '120px'}}>Location</th>
-              <th style={{width: '60px'}} className="text-center">Qty</th>
-              <th style={{width: '60px'}} className="text-center">Min</th>
+              <th style={{width: '120px'}}>Part ID</th>
+              <th style={{minWidth: '200px'}}>Name</th>
+              <th style={{width: '100px'}}>Location</th>
+              <th style={{width: '50px'}} className="text-center">Qty</th>
+              <th style={{width: '50px'}} className="text-center">Min</th>
               <th style={{width: '120px'}}>Status</th>
-              <th style={{width: '80px'}}>Actions</th>
+              <th style={{width: '200px'}}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -244,15 +249,6 @@ export default function InventoryPage() {
                     >
                       <ShoppingBag className="h-3 w-3" />
                     </button>
-                    {isAdmin && (
-                      <button
-                        className="github-button github-button-sm"
-                        onClick={() => handleRestockPart(item.part_id)}
-                        title="Restock Part"
-                      >
-                        <PackagePlus className="h-3 w-3" />
-                      </button>
-                    )}
                     <button
                       className="github-button github-button-sm"
                       onClick={() => handleShowQrCode(item.part_id, item.description)}
@@ -264,6 +260,15 @@ export default function InventoryPage() {
                       <a href={item.part_link} target="_blank" rel="noopener noreferrer" className="github-button github-button-sm" title="View Part Link">
                         <ExternalLink className="h-3 w-3" />
                       </a>
+                    )}
+                    {isAdmin && (
+                      <button
+                        className="github-button github-button-sm"
+                        onClick={() => handleRestockPart(item.part_id)}
+                        title="Restock Part"
+                      >
+                        <PackagePlus className="h-3 w-3" />
+                      </button>
                     )}
                     {isAdmin && (
                       <button

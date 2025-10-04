@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/auth-context';
-import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, PackagePlus, History, Users, ShoppingBag, QrCode } from 'lucide-react';
+import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, History, Users, QrCode } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
@@ -60,12 +60,6 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Build</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/checkout" className="flex items-center cursor-pointer">
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Use Parts
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link href="/dashboard/boards" className="flex items-center cursor-pointer">
                   <Hammer className="h-4 w-4 mr-2" />
                   Boards
@@ -101,12 +95,6 @@ export function Header() {
                     <Link href="/dashboard/outstanding" className="flex items-center cursor-pointer">
                       <AlertCircle className="h-4 w-4 mr-2" />
                       Items Out
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/restock" className="flex items-center cursor-pointer">
-                      <PackagePlus className="h-4 w-4 mr-2" />
-                      Restock
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
