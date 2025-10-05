@@ -1,8 +1,11 @@
 // Configuration for QR code generation and other app settings
 
 export const config = {
-  // Base URL for QR codes - change this to your production domain
-  qrCodeBaseUrl: 'https://sats.stanfordssi.org/inventory',
+  // Base URL for QR codes - automatically uses localhost in dev, production URL in prod
+  qrCodeBaseUrl: process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://sats.stanfordssi.org/inventory'
+      : 'http://localhost:3000/inventory'),
 
   // QR code settings
   qrCode: {
