@@ -10,25 +10,25 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Allow checkout page without authentication
-  const publicDashboardPaths = ['/dashboard/checkout'];
-  const isPublicPath = publicDashboardPaths.some(path =>
+  // Public paths that don't require authentication
+  const publicPaths = ['/auth', '/checkout'];
+  const isPublicPath = publicPaths.some(path =>
     req.nextUrl.pathname.startsWith(path)
   );
 
   // Redirect to login if not authenticated and trying to access protected routes
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard') && !isPublicPath) {
+  if (!session && !isPublicPath) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
-  // Redirect to dashboard if authenticated and trying to access auth pages
+  // Redirect to home if authenticated and trying to access auth pages
   if (session && req.nextUrl.pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+    return NextResponse.redirect(new URL('/', req.url));
   }
 
   return res;
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/auth/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)'],
 };

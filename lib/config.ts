@@ -2,7 +2,7 @@
 
 export const config = {
   // Base URL for QR codes - change this to your production domain
-  qrCodeBaseUrl: 'http://localhost:3000',
+  qrCodeBaseUrl: 'https://sats.stanfordssi.org/inventory',
 
   // QR code settings
   qrCode: {

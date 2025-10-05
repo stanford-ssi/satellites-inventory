@@ -47,19 +47,17 @@ export default function ScannerPage() {
               // Check if it's a QR code URL (e.g., /qrcode/PART-123)
               if (url.pathname.startsWith('/qrcode/')) {
                 const partId = decodeURIComponent(url.pathname.replace('/qrcode/', ''));
-                router.push(`/dashboard/checkout?part=${encodeURIComponent(partId)}`);
-              } else if (url.pathname.startsWith('/dashboard/')) {
-                router.push(url.pathname);
+                router.push(`/checkout?part=${encodeURIComponent(partId)}`);
               } else {
                 router.push(decodedText);
               }
             } catch (error) {
               console.error('Invalid URL:', error);
-              router.push(`/dashboard/checkout?part=${encodeURIComponent(decodedText)}`);
+              router.push(`/checkout?part=${encodeURIComponent(decodedText)}`);
             }
           } else {
             // Assume it's a part ID or code, navigate to checkout with the part pre-filled
-            router.push(`/dashboard/checkout?part=${encodeURIComponent(decodedText)}`);
+            router.push(`/checkout?part=${encodeURIComponent(decodedText)}`);
           }
         },
         (error) => {

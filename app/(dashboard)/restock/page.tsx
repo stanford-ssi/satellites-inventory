@@ -27,7 +27,7 @@ export default function AddStockPage() {
   useEffect(() => {
     if (!profile) return;
     if (profile.role !== 'admin') {
-      router.push('/dashboard');
+      router.push('/');
     }
   }, [profile, router]);
 
@@ -88,8 +88,8 @@ export default function AddStockPage() {
         return;
       }
 
-      // Success - redirect to inventory page
-      router.push('/dashboard/inventory');
+      // Success - redirect to parts page
+      router.push('/parts');
     } catch (error) {
       console.error('Failed to restock:', error);
       alert('An unexpected error occurred. Please try again.');

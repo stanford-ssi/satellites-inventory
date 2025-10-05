@@ -45,7 +45,7 @@ export default function InventoryPage() {
       setSelectedPartForUse(partParam);
       setUsePartsModalOpen(true);
       // Clear the query parameter after opening modal
-      router.replace('/dashboard/inventory', { scroll: false });
+      router.replace('/parts', { scroll: false });
     }
   }, [searchParams, loading, router]);
 

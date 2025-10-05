@@ -225,7 +225,7 @@ export default function CheckoutPage() {
       }
 
       // Success - redirect to my items page
-      router.push('/dashboard/my-items');
+      router.push('/my-items');
     } catch (error) {
       console.error('Failed to submit transaction:', error);
       setValidationError('An unexpected error occurred. Please try again.');
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
           <button
             type="button"
             className="github-button github-button-sm"
-            onClick={() => router.push('/dashboard/scanner')}
+            onClick={() => router.push('/scanner')}
           >
             <QrCode className="h-3 w-3 mr-1" />
             Scan QR

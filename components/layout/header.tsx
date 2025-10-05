@@ -14,6 +14,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, History, Users, QrCode } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
@@ -45,28 +46,28 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem asChild>
-                <Link href="/dashboard" className="flex items-center cursor-pointer">
+                <Link href="/" className="flex items-center cursor-pointer">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Dashboard
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/inventory" className="flex items-center cursor-pointer">
+                <Link href="/parts" className="flex items-center cursor-pointer">
                   <Package className="h-4 w-4 mr-2" />
-                  Inventory
+                  Parts
                 </Link>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Build</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/boards" className="flex items-center cursor-pointer">
+                <Link href="/boards" className="flex items-center cursor-pointer">
                   <Hammer className="h-4 w-4 mr-2" />
                   Boards
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/scanner" className="flex items-center cursor-pointer">
+                <Link href="/scanner" className="flex items-center cursor-pointer">
                   <QrCode className="h-4 w-4 mr-2" />
                   Scan QR
                 </Link>
@@ -75,13 +76,13 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Profile</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/my-items" className="flex items-center cursor-pointer">
+                <Link href="/my-items" className="flex items-center cursor-pointer">
                   <UserCircle className="h-4 w-4 mr-2" />
                   My Items
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="flex items-center cursor-pointer">
+                <Link href="/settings" className="flex items-center cursor-pointer">
                   <Settings className="h-4 w-4 mr-2" />
                   Profile
                 </Link>
@@ -92,19 +93,19 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Admin</DropdownMenuLabel>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/outstanding" className="flex items-center cursor-pointer">
+                    <Link href="/outstanding" className="flex items-center cursor-pointer">
                       <AlertCircle className="h-4 w-4 mr-2" />
                       Items Out
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/transactions" className="flex items-center cursor-pointer">
+                    <Link href="/transactions" className="flex items-center cursor-pointer">
                       <History className="h-4 w-4 mr-2" />
                       History
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/users" className="flex items-center cursor-pointer">
+                    <Link href="/users" className="flex items-center cursor-pointer">
                       <Users className="h-4 w-4 mr-2" />
                       Manage Users
                     </Link>
@@ -114,8 +115,8 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <a href="/dashboard" className="flex items-center space-x-2">
-            <img src="/ssi-glitch.png" alt="Logo" className="h-6 w-6" />
+          <a href="/" className="flex items-center space-x-2">
+            <Image src="/ssi-glitch.png" alt="Logo" width={24} height={24} className="h-6 w-6" />
             <span className="font-bold text-sm hidden sm:inline">
               Satellites Inventory Manager
             </span>
@@ -129,7 +130,7 @@ export function Header() {
 
         <nav className="flex items-center space-x-2">
           {user && profile && (
-            <Link href="/dashboard/settings">
+            <Link href="/settings">
               <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs font-medium">

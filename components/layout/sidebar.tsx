@@ -12,12 +12,12 @@ import { useEffect, useRef, useCallback } from 'react';
 const navigation = [
   {
     name: 'Dashboard',
-    href: '/dashboard',
+    href: '/',
     icon: BarChart3,
   },
   {
-    name: 'Inventory',
-    href: '/dashboard/inventory',
+    name: 'Parts',
+    href: '/parts',
     icon: Package,
   },
 ];
@@ -25,12 +25,12 @@ const navigation = [
 const buildNavigation = [
   {
     name: 'Boards',
-    href: '/dashboard/boards',
+    href: '/boards',
     icon: Hammer,
   },
   {
     name: 'Scan QR',
-    href: '/dashboard/scanner',
+    href: '/scanner',
     icon: QrCode,
   },
 ];
@@ -38,12 +38,12 @@ const buildNavigation = [
 const profileNavigation = [
   {
     name: 'My Items',
-    href: '/dashboard/my-items',
+    href: '/my-items',
     icon: UserCircle,
   },
   {
     name: 'Profile',
-    href: '/dashboard/settings',
+    href: '/settings',
     icon: Settings,
   },
 ];
@@ -51,17 +51,17 @@ const profileNavigation = [
 const adminNavigation = [
   {
     name: 'Items Out',
-    href: '/dashboard/outstanding',
+    href: '/outstanding',
     icon: AlertCircle,
   },
   {
     name: 'History',
-    href: '/dashboard/transactions',
+    href: '/transactions',
     icon: History,
   },
   {
     name: 'Manage Users',
-    href: '/dashboard/users',
+    href: '/users',
     icon: Users,
   },
 ];

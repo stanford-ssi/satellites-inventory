@@ -86,7 +86,7 @@ export default function DashboardPage() {
           <div className="flex gap-2">
             <button
               className="github-button github-button-sm"
-              onClick={() => router.push('/dashboard/scanner')}
+              onClick={() => router.push('/scanner')}
             >
               <QrCode className="h-3 w-3 mr-1" />
               Scan QR
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="justify-start h-auto p-2"
-                  onClick={() => router.push('/dashboard/scanner')}
+                  onClick={() => router.push('/scanner')}
                 >
                   <QrCode className="h-4 w-4 mr-2" />
                   <div className="text-left">
@@ -192,7 +192,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="justify-start h-auto p-2"
-                  onClick={() => router.push('/dashboard/inventory')}
+                  onClick={() => router.push('/parts')}
                 >
                   <Package className="h-4 w-4 mr-2" />
                   <div className="text-left">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="justify-start h-auto p-2"
-                  onClick={() => router.push('/dashboard/boards')}
+                  onClick={() => router.push('/boards')}
                 >
                   <Hammer className="h-4 w-4 mr-2" />
                   <div className="text-left">
@@ -221,7 +221,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     className="justify-start h-auto p-2"
-                    onClick={() => router.push('/dashboard/inventory')}
+                    onClick={() => router.push('/parts')}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     <div className="text-left">
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     className="justify-start h-auto p-2"
-                    onClick={() => router.push('/dashboard/users')}
+                    onClick={() => router.push('/users')}
                   >
                     <Users className="h-4 w-4 mr-2" />
                     <div className="text-left">
