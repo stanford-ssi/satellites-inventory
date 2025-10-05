@@ -3,17 +3,23 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+  let res = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  });
+
   const supabase = createMiddlewareClient({ req, res });
 
-  // Refresh session if needed - this updates the cookies
+  // Refresh session - this automatically updates cookies in res
+  await supabase.auth.getSession();
+
+  // Get session again after potential refresh
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
   // Public paths that don't require authentication
-  // Note: With basePath '/inventory', these paths are accessed as /inventory/auth/login, etc.
-  // but Next.js middleware sees them without the basePath prefix
   const publicPaths = ['/auth', '/checkout', '/qrcode'];
   const isPublicPath = publicPaths.some(path =>
     req.nextUrl.pathname.startsWith(path)
@@ -23,24 +29,14 @@ export async function middleware(req: NextRequest) {
   if (!session && !isPublicPath) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/auth/login';
-    const redirectResponse = NextResponse.redirect(redirectUrl);
-    // Copy cookies from the original response to maintain session
-    res.cookies.getAll().forEach(cookie => {
-      redirectResponse.cookies.set(cookie);
-    });
-    return redirectResponse;
+    return NextResponse.redirect(redirectUrl);
   }
 
   // Redirect to home if authenticated and trying to access auth pages
   if (session && req.nextUrl.pathname.startsWith('/auth')) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/';
-    const redirectResponse = NextResponse.redirect(redirectUrl);
-    // Copy cookies from the original response to maintain session
-    res.cookies.getAll().forEach(cookie => {
-      redirectResponse.cookies.set(cookie);
-    });
-    return redirectResponse;
+    return NextResponse.redirect(redirectUrl);
   }
 
   return res;

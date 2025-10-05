@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description: 'Professional inventory tracking with QR codes and role-based access',
 };
 
+// Force dynamic rendering for all routes
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function RootLayout({
   children,
 }: {
