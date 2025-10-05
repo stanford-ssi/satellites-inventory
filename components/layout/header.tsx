@@ -114,15 +114,15 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <a href="/" className="flex items-center space-x-2">
-            <img src="/ssi-glitch.png" alt="Logo" className="h-6 w-6" />
+          <Link href="/" className="flex items-center space-x-2">
+            <img src="/inventory/ssi-glitch.png" alt="Logo" className="h-6 w-6" />
             <span className="font-bold text-sm hidden sm:inline">
               Satellites Inventory Manager
             </span>
             <span className="font-bold text-sm sm:hidden">
               Inventory
             </span>
-          </a>
+          </Link>
         </div>
 
         <div className="flex-1" />
