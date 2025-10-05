@@ -42,7 +42,7 @@ const profileNavigation = [
     icon: UserCircle,
   },
   {
-    name: 'Profile',
+    name: 'Settings',
     href: '/settings',
     icon: Settings,
   },

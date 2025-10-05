@@ -84,7 +84,7 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link href="/settings" className="flex items-center cursor-pointer">
                   <Settings className="h-4 w-4 mr-2" />
-                  Profile
+                  Settings
                 </Link>
               </DropdownMenuItem>
 
