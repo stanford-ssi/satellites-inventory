@@ -20,12 +20,16 @@ export async function middleware(req: NextRequest) {
 
   // Redirect to login if not authenticated and trying to access protected routes
   if (!session && !isPublicPath) {
-    return NextResponse.redirect(new URL('/auth/login', req.url));
+    const redirectUrl = req.nextUrl.clone();
+    redirectUrl.pathname = '/auth/login';
+    return NextResponse.redirect(redirectUrl);
   }
 
   // Redirect to home if authenticated and trying to access auth pages
   if (session && req.nextUrl.pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL('/', req.url));
+    const redirectUrl = req.nextUrl.clone();
+    redirectUrl.pathname = '/';
+    return NextResponse.redirect(redirectUrl);
   }
 
   return res;
