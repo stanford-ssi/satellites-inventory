@@ -41,7 +41,7 @@ export function SignupForm() {
         setSuccess(true);
         // Auto sign in after signup
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push('/');
         }, 1500);
       }
     } catch (error) {
@@ -57,7 +57,7 @@ export function SignupForm() {
         <CardContent className="pt-6">
           <Alert>
             <AlertDescription>
-              Account created successfully! Redirecting to dashboard...
+              Account created successfully! Redirecting to home...
             </AlertDescription>
           </Alert>
         </CardContent>
