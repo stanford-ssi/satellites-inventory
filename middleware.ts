@@ -11,7 +11,9 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Public paths that don't require authentication
-  const publicPaths = ['/auth', '/checkout'];
+  // Note: With basePath '/inventory', these paths are accessed as /inventory/auth/login, etc.
+  // but Next.js middleware sees them without the basePath prefix
+  const publicPaths = ['/auth', '/checkout', '/qrcode'];
   const isPublicPath = publicPaths.some(path =>
     req.nextUrl.pathname.startsWith(path)
   );
