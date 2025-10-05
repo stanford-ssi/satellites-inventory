@@ -6,6 +6,7 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
+  // Refresh session if needed - this updates the cookies
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -22,14 +23,24 @@ export async function middleware(req: NextRequest) {
   if (!session && !isPublicPath) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/auth/login';
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    // Copy cookies from the original response to maintain session
+    res.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
   }
 
   // Redirect to home if authenticated and trying to access auth pages
   if (session && req.nextUrl.pathname.startsWith('/auth')) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = '/';
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    // Copy cookies from the original response to maintain session
+    res.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
   }
 
   return res;

@@ -14,7 +14,6 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { LogOut, Package, Settings, Menu, BarChart3, Hammer, UserCircle, AlertCircle, History, Users, QrCode } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
@@ -116,7 +115,7 @@ export function Header() {
           </DropdownMenu>
 
           <a href="/" className="flex items-center space-x-2">
-            <Image src="/ssi-glitch.png" alt="Logo" width={24} height={24} className="h-6 w-6" />
+            <img src="/ssi-glitch.png" alt="Logo" className="h-6 w-6" />
             <span className="font-bold text-sm hidden sm:inline">
               Satellites Inventory Manager
             </span>
