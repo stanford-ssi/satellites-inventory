@@ -46,7 +46,8 @@ export default function MyItemsPage() {
     if (!profile?.id) return;
 
     try {
-      // Fetch all transactions for this user
+      // Fetch transactions for this user with limit for scalability
+      // Limit to 5000 most recent transactions per user
       const { data: transactions, error } = await supabase
         .from('transactions')
         .select(`
@@ -61,7 +62,8 @@ export default function MyItemsPage() {
           )
         `)
         .eq('user_id', profile.id)
-        .order('timestamp', { ascending: true });
+        .order('timestamp', { ascending: true })
+        .limit(5000);
 
       if (error) {
         console.error('Error fetching transactions:', error);

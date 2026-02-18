@@ -23,6 +23,7 @@ export function useTransactions() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
+      // Limit to 1000 most recent transactions for scalability
       const { data, error } = await supabase
         .from('transactions')
         .select(`
@@ -31,7 +32,7 @@ export function useTransactions() {
           users(name, email)
         `)
         .order('timestamp', { ascending: false })
-        .limit(50);
+        .limit(1000);
 
       if (error) {
         setError(error.message);

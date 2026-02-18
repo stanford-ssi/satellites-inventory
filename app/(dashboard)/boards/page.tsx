@@ -73,20 +73,31 @@ export default function BoardsPage() {
 
       if (error) throw error;
 
-      // Get build counts for each board
-      const boardsWithCounts = await Promise.all(
-        (data || []).map(async (board) => {
-          const { count } = await supabase
-            .from('board_builds')
-            .select('*', { count: 'exact', head: true })
-            .eq('board_id', board.id);
+      // Fetch all build counts in a single query to avoid N+1 problem
+      const boardIds = (data || []).map(board => board.id);
+      const buildCountsMap = new Map<string, number>();
+      
+      if (boardIds.length > 0) {
+        // Use a single query with .in() to get all build counts at once
+        const { data: buildsData, error: buildsError } = await supabase
+          .from('board_builds')
+          .select('board_id')
+          .in('board_id', boardIds);
 
-          return {
-            ...board,
-            builds_count: count || 0
-          };
-        })
-      );
+        if (!buildsError && buildsData) {
+          // Count builds per board
+          buildsData.forEach(build => {
+            const currentCount = buildCountsMap.get(build.board_id) || 0;
+            buildCountsMap.set(build.board_id, currentCount + 1);
+          });
+        }
+      }
+
+      // Map build counts to boards
+      const boardsWithCounts = (data || []).map(board => ({
+        ...board,
+        builds_count: buildCountsMap.get(board.id) || 0
+      }));
 
       setBoards(boardsWithCounts);
     } catch (error) {

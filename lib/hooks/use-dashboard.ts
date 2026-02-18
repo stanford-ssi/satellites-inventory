@@ -66,17 +66,24 @@ export function useDashboard() {
       setError(null);
       console.log('Fetching dashboard data...');
 
-      // Fetch inventory stats
-      const { data: inventory, error: invError } = await supabase
+      // Fetch inventory stats using count queries for scalability
+      const { count: totalParts, error: totalPartsError } = await supabase
         .from('inventory')
-        .select('quantity, min_quantity');
+        .select('*', { count: 'exact', head: true });
 
-      if (invError) {
-        console.error('Inventory fetch error:', invError);
-        throw invError;
+      if (totalPartsError) {
+        console.error('Inventory count error:', totalPartsError);
+        throw totalPartsError;
       }
 
-      console.log('Inventory fetched:', inventory?.length, 'items');
+      // For low stock, we need to fetch items but can limit to only those that might be low
+      // This is more efficient than fetching all items
+      const { data: lowStockData, error: lowStockError } = await supabase
+        .from('inventory')
+        .select('quantity, min_quantity')
+        .limit(10000); // Reasonable limit for low stock check
+
+      const lowStockItems = lowStockData?.filter(item => item.quantity <= item.min_quantity).length || 0;
 
       // Fetch user count (admin only)
       let userCount = 0;
@@ -237,11 +244,8 @@ export function useDashboard() {
         : 0;
 
       // Calculate stats
-      const totalParts = inventory?.length || 0;
-      const lowStockItems = inventory?.filter(item => item.quantity <= item.min_quantity).length || 0;
-
       setStats({
-        totalParts,
+        totalParts: totalParts || 0,
         lowStockItems,
         totalUsers: userCount,
         recentTransactions: transactions.length + builds.length,

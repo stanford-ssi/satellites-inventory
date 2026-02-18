@@ -14,10 +14,12 @@ export function useInventory() {
   const fetchInventory = async () => {
     try {
       setLoading(true);
+      // Add reasonable limit for scalability (10,000 items)
       const { data, error } = await supabase
         .from('inventory')
         .select('*')
-        .order('part_id');
+        .order('part_id')
+        .limit(10000);
 
       if (error) {
         setError(error.message);

@@ -167,57 +167,70 @@ export function NewBoardModal({ isOpen, onClose, onSuccess, userId }: NewBoardMo
       }
 
       console.log('Creating/updating inventory parts...');
-      // Step 1: Create/update inventory parts
+      // Step 1: Batch lookup existing parts to avoid N+1 queries
+      const partIds = bomRows.map(row => row.partId);
+      const { data: existingParts, error: existingError } = await supabase
+        .from('inventory')
+        .select('id, part_id')
+        .in('part_id', partIds);
+
+      if (existingError) {
+        console.error('Error checking existing parts:', existingError);
+        throw existingError;
+      }
+
+      // Create a map of existing parts
+      const existingPartsMap = new Map<string, string>();
+      existingParts?.forEach(part => {
+        existingPartsMap.set(part.part_id, part.id);
+      });
+
       const inventoryIds: { [key: string]: string } = {};
+      const partsToCreate: any[] = [];
 
+      // Identify which parts need to be created
       for (const row of bomRows) {
-        console.log(`Processing part: ${row.partId}`);
-
-        // Check if part already exists
-        const { data: existing, error: existingError } = await supabase
-          .from('inventory')
-          .select('id')
-          .eq('part_id', row.partId)
-          .maybeSingle();
-
-        if (existingError) {
-          console.error('Error checking existing part:', existingError);
-          throw existingError;
-        }
-
-        if (existing) {
-          // Part exists, store its ID
-          console.log(`Part ${row.partId} already exists, using ID: ${existing.id}`);
-          inventoryIds[row.partId] = existing.id;
+        const existingId = existingPartsMap.get(row.partId);
+        if (existingId) {
+          // Part exists, use existing ID
+          console.log(`Part ${row.partId} already exists, using ID: ${existingId}`);
+          inventoryIds[row.partId] = existingId;
         } else {
-          // Create new inventory part
-          console.log(`Creating new part: ${row.partId}`);
-          const { data: newPart, error: partError } = await supabase
-            .from('inventory')
-            .insert({
-              part_id: row.partId,
-              description: row.partName,
-              value: row.value || null,
-              footprint: row.footprint || null,
-              bin_id: row.binId || null,
-              location_within_bin: row.locationWithinBin || null,
-              quantity: 0, // Start with 0, will be added via restock
-              min_quantity: row.minQuantity,
-              part_link: row.partLink || null,
-              qr_code: `QR-${row.partId}`,
-              is_sensitive: row.isSensitive
-            })
-            .select('id')
-            .single();
-
-          if (partError) {
-            console.error('Error creating part:', partError);
-            throw partError;
-          }
-
-          console.log(`Created part ${row.partId} with ID: ${newPart.id}`);
-          inventoryIds[row.partId] = newPart.id;
+          // Part needs to be created - batch the inserts
+          partsToCreate.push({
+            part_id: row.partId,
+            description: row.partName,
+            value: row.value || null,
+            footprint: row.footprint || null,
+            bin_id: row.binId || null,
+            location_within_bin: row.locationWithinBin || null,
+            quantity: 0, // Start with 0, will be added via restock
+            min_quantity: row.minQuantity,
+            part_link: row.partLink || null,
+            qr_code: `QR-${row.partId}`,
+            is_sensitive: row.isSensitive
+          });
         }
+      }
+
+      // Batch create all new parts at once
+      if (partsToCreate.length > 0) {
+        console.log(`Creating ${partsToCreate.length} new parts in batch...`);
+        const { data: newParts, error: createError } = await supabase
+          .from('inventory')
+          .insert(partsToCreate)
+          .select('id, part_id');
+
+        if (createError) {
+          console.error('Error creating parts:', createError);
+          throw createError;
+        }
+
+        // Map new parts to inventoryIds
+        newParts?.forEach(part => {
+          inventoryIds[part.part_id] = part.id;
+          console.log(`Created part ${part.part_id} with ID: ${part.id}`);
+        });
       }
 
       console.log('Creating board...');

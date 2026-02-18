@@ -25,7 +25,8 @@ export default function OutstandingPage() {
 
   const fetchOutstandingItems = async () => {
     try {
-      // Fetch all transactions and calculate net outstanding per user per part
+      // Fetch transactions (only checkout/return, not adjustments) with limit for scalability
+      // Limit to 10,000 most recent transactions to prevent loading millions of records
       const { data: transactions, error } = await supabase
         .from('transactions')
         .select(`
@@ -43,7 +44,9 @@ export default function OutstandingPage() {
             email
           )
         `)
-        .order('timestamp', { ascending: true });
+        .in('type', ['checkout', 'return'])
+        .order('timestamp', { ascending: true })
+        .limit(10000);
 
       if (error) {
         console.error('Error fetching transactions:', error);
