@@ -14,11 +14,26 @@ import { AddPartModal } from '@/components/inventory/add-part-modal';
 import { EditPartModal } from '@/components/inventory/edit-part-modal';
 import { UsePartsModal } from '@/components/inventory/use-parts-modal';
 import { RestockModal } from '@/components/inventory/restock-modal';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { generateBulkQrPdf } from '@/lib/utils/bulk-qr-pdf';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function InventoryPage() {
+  return (
+    <Suspense fallback={
+      <div className="dashboard-section">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading inventory...</span>
+        </div>
+      </div>
+    }>
+      <InventoryPageContent />
+    </Suspense>
+  );
+}
+
+function InventoryPageContent() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const router = useRouter();
@@ -44,8 +59,11 @@ export default function InventoryPage() {
     if (partParam && !loading) {
       setSelectedPartForUse(partParam);
       setUsePartsModalOpen(true);
-      // Clear the query parameter after opening modal
-      router.replace('/parts', { scroll: false });
+      // Clear the query parameter after opening modal (deferred to avoid setState-during-render)
+      const timeout = setTimeout(() => {
+        router.replace('/parts', { scroll: false });
+      }, 0);
+      return () => clearTimeout(timeout);
     }
   }, [searchParams, loading, router]);
 

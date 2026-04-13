@@ -51,6 +51,16 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 
 -- 3. CREATE POLICIES
 
+-- Helper function to check admin status without triggering RLS recursion.
+-- SECURITY DEFINER bypasses RLS when this function queries the users table.
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM users
+    WHERE auth_id = auth.uid() AND role = 'admin'
+  );
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Users can view their own profile" ON users;
 DROP POLICY IF EXISTS "Users can update their own profile" ON users;
@@ -79,47 +89,26 @@ CREATE POLICY "Admins can view all users"
   ON users
   FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE auth_id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (is_admin());
 
 CREATE POLICY "Admins can manage all users"
   ON users
   FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE auth_id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (is_admin());
 
 -- Inventory policies
 CREATE POLICY "Members can view non-sensitive inventory"
   ON inventory
   FOR SELECT
   TO authenticated
-  USING (
-    NOT is_sensitive OR
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE auth_id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (NOT is_sensitive OR is_admin());
 
 CREATE POLICY "Admins can manage all inventory"
   ON inventory
   FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE auth_id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (is_admin());
 
 -- Transactions policies
 CREATE POLICY "Users can view their own transactions"
@@ -146,12 +135,7 @@ CREATE POLICY "Admins can view all transactions"
   ON transactions
   FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM users
-      WHERE auth_id = auth.uid() AND role = 'admin'
-    )
-  );
+  USING (is_admin());
 
 -- 4. CREATE FUNCTIONS AND TRIGGERS
 
@@ -160,10 +144,20 @@ CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO users (auth_id, email, name, role)
-  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'name', 'User'), 'member');
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'name', 'User'),
+    'member'
+  );
   RETURN NEW;
+EXCEPTION
+  WHEN unique_violation THEN
+    -- User already exists (e.g. re-signup attempt), just return
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
 
 -- Trigger to automatically create user profile
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -247,39 +241,21 @@ ALTER TABLE board_builds ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for boards
 CREATE POLICY "boards_select_all" ON boards FOR SELECT USING (true);
-CREATE POLICY "boards_insert_admin" ON boards FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
-CREATE POLICY "boards_update_admin" ON boards FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
-CREATE POLICY "boards_delete_admin" ON boards FOR DELETE USING (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "boards_insert_admin" ON boards FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "boards_update_admin" ON boards FOR UPDATE USING (is_admin());
+CREATE POLICY "boards_delete_admin" ON boards FOR DELETE USING (is_admin());
 
 -- RLS Policies for board_parts
 CREATE POLICY "board_parts_select_all" ON board_parts FOR SELECT USING (true);
-CREATE POLICY "board_parts_insert_admin" ON board_parts FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
-CREATE POLICY "board_parts_update_admin" ON board_parts FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
-CREATE POLICY "board_parts_delete_admin" ON board_parts FOR DELETE USING (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "board_parts_insert_admin" ON board_parts FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "board_parts_update_admin" ON board_parts FOR UPDATE USING (is_admin());
+CREATE POLICY "board_parts_delete_admin" ON board_parts FOR DELETE USING (is_admin());
 
 -- RLS Policies for board_builds - everyone can build, but only admins can delete
 CREATE POLICY "board_builds_select_all" ON board_builds FOR SELECT USING (true);
-CREATE POLICY "board_builds_insert_all" ON board_builds FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid())
-);
-CREATE POLICY "board_builds_update_admin" ON board_builds FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
-CREATE POLICY "board_builds_delete_admin" ON board_builds FOR DELETE USING (
-  EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "board_builds_insert_all" ON board_builds FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "board_builds_update_admin" ON board_builds FOR UPDATE USING (is_admin());
+CREATE POLICY "board_builds_delete_admin" ON board_builds FOR DELETE USING (is_admin());
 
 -- Create updated_at trigger for boards
 CREATE OR REPLACE FUNCTION update_boards_updated_at()
